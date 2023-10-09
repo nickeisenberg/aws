@@ -71,3 +71,6 @@ instance = ec2_res.create_instances(
 ec2_client = boto3.client("ec2", region_name="us-east-2")
 ec2_client.describe_instances()['Reservations'][0]['Instances'][0]['Tags']
 
+# Here is the public ip_address so that we can SSH into the instance 
+ec2_client.describe_instances()['Reservations'][0]['Instances'][0]['PublicIpAddress']
+
