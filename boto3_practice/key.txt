@@ -1,0 +1,4 @@
+# access and secret key for the S3 bucket
+
+Access Key: AKIAQX2NV3LF4U6XIFV7
+Secret Access Key: 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
