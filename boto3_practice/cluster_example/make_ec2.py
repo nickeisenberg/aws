@@ -24,7 +24,7 @@ import boto3
 import json
 
 # get the access and secret keys to the aws account
-with open("/home/nicholas/GitRepos/password.json") as oj:
+with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
     pw = json.load(oj)
 
 ACCESS_KEY = pw['aws_ACCESS_KEY']
