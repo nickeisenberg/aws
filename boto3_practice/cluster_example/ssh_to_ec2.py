@@ -16,13 +16,13 @@ import numpy as np
 with open("/home/ubuntu/GitRepos/OFFLINE/password.json") as oj:
     pw = json.load(oj)
 
-ACCESS_KEY = pw['aws_ACCESS_KEY']
-SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY']
+ACCESS_KEY = pw['aws_ACCESS_KEY_nick']
+SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY_nick']
 
 session = boto3.Session(
     aws_access_key_id=ACCESS_KEY,
     aws_secret_access_key=SECRET_ACCESS_KEY,
-    # profile_name="",
+    profile_name="nick",
     region_name="us-east-2"
 )
 
@@ -33,7 +33,10 @@ s3_client = session.client('s3')
 s3_res = session.resource('s3')
 
 buckets = [bucket['Name'] for bucket in s3_client.list_buckets()['Buckets']]
+
+
 bucket_name = 'my-boto3-practice'
+
 
 training_data = []
 for i in [0, 1]:
@@ -43,18 +46,18 @@ for i in [0, 1]:
     )['Body'].read().decode("utf-8")
     training_data.append(pd.read_csv(io.StringIO(data)))
 
+
 training_data = pd.concat(training_data, axis=0)
+
 
 class Model:
     
     def __init__(
         self, 
-        W=torch.randn(size=(2,1), requires_grad=True), 
-        b=torch.randn(size=(1,1), requires_grad=True), 
         lr=.01
     ):
-        self.W = W
-        self.b = b
+        self.W=torch.randn(size=(2,1), requires_grad=True)
+        self.b=torch.randn(size=(1,1), requires_grad=True) 
         self.lr = lr
 
     def forward(self, input):
@@ -92,6 +95,7 @@ class Model:
                 self.W.grad.zero_() 
                 self.b.grad.zero_()
 
+
 inputs = torch.tensor(
     training_data[['x', 'y']].values, dtype=torch.float32
 )
@@ -103,7 +107,8 @@ model = Model()
 
 model.train(inputs, labels, epochs=5000)
 
-guesses = model.forward(inputs)
+with torch.no_grad():
+    guesses = model.forward(inputs)
 
 np.where(
     (labels.detach().numpy() - np.round(guesses.detach().numpy())) != 0

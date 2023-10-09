@@ -28,10 +28,9 @@ import numpy as np
 import pandas as pd
 import io
 import json
+import os
+clear = lambda : os.system('clear')
 
-# get the access and secret keys to the aws account
-with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
-    pw = json.load(oj)
 
 """
 Blob creation
@@ -60,19 +59,32 @@ csv_1 = df.iloc[500:].to_csv(index=False)
 Moving the blobs to a aws s3 bucket
 """
 
-ACCESS_KEY = pw['aws_ACCESS_KEY']
-SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY']
+# get the access and secret keys to the aws account
+with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
+    pw = json.load(oj)
+
+ACCESS_KEY = pw['aws_ACCESS_KEY_nick']
+SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY_nick']
 
 session = boto3.Session(
     aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_ACCESS_KEY
+    aws_secret_access_key=SECRET_ACCESS_KEY,
+    profile_name="nick",
 )
 
 # Create a s3 client that can make s3 buckets
-s3_client = boto3.client('s3')
+# Also create the resource 
+s3_client = session.client('s3')
+s3_res = session.resource('s3')
+
+# This method relies on the defaul access key which cooresponds to the root
+# user. It is not best practice to have an access key for the root user. So this
+# method of making a client should not usually be used
+# >>> s3_client = boto3.client('s3')
 
 # here are all the buckets
 buckets = [bucket['Name'] for bucket in s3_client.list_buckets()['Buckets']]
+
 
 # add this bucket if it does not exist
 new_bucket = 'my-boto3-practice'
@@ -80,12 +92,11 @@ if new_bucket not in buckets:
     print('Creating the bucket')
     s3_client.create_bucket(Bucket=new_bucket)
 
-# create the s3 resource that can add to an existing bucket
-s3_res = boto3.resource('s3')
 
 # First lets connect to the new bucket and get all of the existing objects.
 # This includes folders and individual files.
 bucket = s3_res.Bucket(new_bucket)
+
 all_objects = [x.key for x in list(bucket.objects.all())]
 
 # Lets create this new directory if it does not already exist
@@ -95,8 +106,19 @@ if new_dir not in all_objects:
     bucket.put_object(Key=new_dir)
     
 # With the new folder created, we can now add the cluster csv's to the folder
-s3_res.Object(new_bucket, new_dir + "cluster_0.csv").put(Body=csv_0)
-s3_res.Object(new_bucket, new_dir + "cluster_1.csv").put(Body=csv_1)
+if new_dir + "cluster_0.csv" not in all_objects:
+    print("The file was created")
+    s3_res.Object(
+        new_bucket, 
+        new_dir + "cluster_0.csv"
+    ).put(Body=csv_0)
+
+if new_dir + "cluster_1.csv" not in all_objects:
+    print("The file was created")
+    s3_res.Object(
+        new_bucket, 
+        new_dir + "cluster_1.csv"
+    ).put(Body=csv_1)
 
 # We can see if they were in fact added
 print([x.key for x in list(bucket.objects.all())])
