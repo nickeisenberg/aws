@@ -128,7 +128,3 @@ s3_res.Object(
 ).download_file(
     '/home/nicholas/GitRepos/learn_aws/boto3_practice/cluster_example/cluster_0.csv'
 )
-
-
-
-

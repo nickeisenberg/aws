@@ -34,6 +34,7 @@ SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY']
 session = boto3.Session(
     aws_access_key_id=ACCESS_KEY,
     aws_secret_access_key=SECRET_ACCESS_KEY,
+    # profile_name="",
     region_name="us-east-2"
 )
 
@@ -74,3 +75,5 @@ ec2_client.describe_instances()['Reservations'][0]['Instances'][0]['Tags']
 # Here is the public ip_address so that we can SSH into the instance 
 ec2_client.describe_instances()['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
+# Now lets take this and ssh into the instance. We will now move to the script
+# ssh_to_ec2.py
