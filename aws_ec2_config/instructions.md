@@ -1,4 +1,5 @@
 * 1\. Previous steps include...
+
     1.1\. Generating an access key
     1.2\. Setting up `aws configure --profile`
     1.3\. Generating a key pair
