@@ -40,6 +40,17 @@
                     "GroupId": "sg-0359d7d29e84ece55"
                 }
             ],
+            "TagSpecifications": [
+                {
+                    "ResourceType": "instance",
+                    "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "gpu-ec2-instance"
+                        }
+                    ]
+                }
+            ],
             "InstanceRequirements": {
                 "ExcludedInstanceTypes": [],
                 "AllowedInstanceTypes": [],
