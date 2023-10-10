@@ -1,8 +1,8 @@
 * Previous steps include...
-_1. Generating an access key
-_2. Setting up `aws configure --profile`
-_3. Generating a key pair
-_4. Making a security group that allows for sufficient inbound and outbount privileges. This 
+1. Generating an access key
+2. Setting up `aws configure --profile`
+3. Generating a key pair
+4. Making a security group that allows for sufficient inbound and outbount privileges. This 
 includes SSH, HTTP, HTTPS and IMCP.
 
 * Use `spot_config.py` to create the EC2 spot instance. The config for this spot instance
@@ -61,27 +61,27 @@ export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 ```
 Considering that there are two options here, the `.bashrc` or `.bash_profile` option, 
 I recommend doing the following:
-    1. Create the directory `~/Dotfile` with `mkdir ~/Dotfiles`.
-    2. `cd` into this directory and run `mkdir ~/Dotfile/.config`. This `.config`
+    10.1. Create the directory `~/Dotfile` with `mkdir ~/Dotfiles`.
+    10.2. `cd` into this directory and run `mkdir ~/Dotfile/.config`. This `.config`
     is used for any user configuration later on
-    3. Now create the `.bash_profile` file within `~/Dotfile` by running 
+    10.3. Now create the `.bash_profile` file within `~/Dotfile` by running 
     `touch ~/Dotfiles/.bash_profile`
-    4. Symlink this file to the place where linux actually looks by running 
+    10.4. Symlink this file to the place where linux actually looks by running 
     `ln -s ~/Dotfiles/.bash_profile ~/.bash_profile`.
-    5. With this symlink, you can either edit `~/.bash_profile` or `~/Dotfiles/.bash_profile`
+    10.5. With this symlink, you can either edit `~/.bash_profile` or `~/Dotfiles/.bash_profile`
     and the changes will occur in both spots.
-    6. Now open the file with `vi ~/Dotfiles/.bash_profile` or `vi ~/.bash_profile` and 
+    10.6. Now open the file with `vi ~/Dotfiles/.bash_profile` or `vi ~/.bash_profile` and 
     add the following lines
     ```
     source ~/.bashrc
     export PATH="/usr/local/cuda/bin:$PATH"
     export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
     ```
-    7. The reason why I like this method, is becuase you can now source control all
+    10.7. The reason why I like this method, is becuase you can now source control all
     of your config files with `git`. You can push this whole `~/Dotfiles` folder to github
     and now all of you config files are tracked so whenever you start up a new EC2 instance,
     you can just reload the config files and save time.
-    8. If you took my recomendation then skip to step 12. Otherwise, go to step 11.
+    10.8. If you took my recomendation then skip to step 12. Otherwise, go to step 11.
 11. Now source with file with `source ~/.bashrc` (or `source ~/.bash_profile`)
 12. Run the following:
 ```
