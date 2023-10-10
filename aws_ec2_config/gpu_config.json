@@ -1,0 +1,67 @@
+{
+    "IamFleetRole": "arn:aws:iam::051165649611:role/aws-ec2-spot-fleet-tagging-role",
+    "AllocationStrategy": "priceCapacityOptimized",
+    "TargetCapacity": 1,
+    "ValidFrom": "2023-10-10T19:49:44.000Z",
+    "ValidUntil": "2024-10-10T19:49:44.000Z",
+    "TerminateInstancesWithExpiration": true,
+    "Type": "request",
+    "TargetCapacityUnitType": "units",
+    "SpotPrice": "1.006",
+    "LaunchSpecifications": [
+        {
+            "ImageId": "ami-053b0d53c279acc90",
+            "KeyName": "us-east-1-kp",
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sda1",
+                    "Ebs": {
+                        "DeleteOnTermination": true,
+                        "SnapshotId": "snap-0d3283808e9f92122",
+                        "VolumeSize": 30,
+                        "VolumeType": "gp2",
+                        "Encrypted": false
+                    }
+                },
+                {
+                    "DeviceName": "/dev/sdb",
+                    "VirtualName": "ephemeral0",
+                    "Ebs": {}
+                },
+                {
+                    "DeviceName": "/dev/sdc",
+                    "VirtualName": "ephemeral1",
+                    "Ebs": {}
+                }
+            ],
+            "SubnetId": "subnet-07d1224ffd029cdcb, subnet-0c2f8cc4bbe9ec367, subnet-052c3fc5ed8e607e0, subnet-01f9c658fd4ba1634, subnet-038075e9e830a97e2, subnet-07340fe68cb46029e",
+            "SecurityGroups": [
+                {
+                    "GroupId": "sg-0359d7d29e84ece55"
+                }
+            ],
+            "InstanceRequirements": {
+                "ExcludedInstanceTypes": [],
+                "AllowedInstanceTypes": [],
+                "VCpuCount": {
+                    "Min": 4,
+                    "Max": 4
+                },
+                "MemoryMiB": {
+                    "Min": 8192,
+                    "Max": 16384
+                },
+                "AcceleratorTypes": [
+                    "gpu"
+                ],
+                "AcceleratorCount": {
+                    "Min": 1,
+                    "Max": 1
+                },
+                "AcceleratorManufacturers": [
+                    "nvidia"
+                ]
+            }
+        }
+    ]
+}
