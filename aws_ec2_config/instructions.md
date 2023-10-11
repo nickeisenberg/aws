@@ -85,7 +85,7 @@ to move the install icon and hit enter. The install hangs again, so be patient.
     - 18.2. `cd` into this directory and run `mkdir ~/Dotfile/.config`. This `.config`
     is used for any user configuration later on
     
-    - 18.3. Now create the `.bash_profile` file within `~/Dotfile` by running 
+    - 18.3. Now create the `.bash_profile` file within `~/Dotfiles` by running 
     
     - `touch ~/Dotfiles/.bash_profile`
     
