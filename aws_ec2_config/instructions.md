@@ -70,43 +70,43 @@ and use the enter key to select or de-delect. ONLY AFTER DE-SELECTING THE DRIVER
 to move the install icon and hit enter. The install hangs again, so be patient.
 
 18. Edit the `~/.bashrc` (or `~/.bash_profile` if you use that) and add the follwing lines
-anywhere in these files:
+    anywhere in these files:
     ```
     export PATH="/usr/local/cuda/bin:$PATH"
     export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
     ```
-Considering that there are two options here, the `.bashrc` or `.bash_profile` option, 
-I recommend doing the following:
-
-    - 18.1. Create the directory `~/Dotfile` with `mkdir ~/Dotfiles`.
-
-    - 18.2. `cd` into this directory and run `mkdir ~/Dotfile/.config`. This `.config`
-    is used for any user configuration later on
-
-    - 18.3. Now create the `.bash_profile` file within `~/Dotfile` by running 
-
-    - `touch ~/Dotfiles/.bash_profile`
-
-    - 18.4. Symlink this file to the place where linux actually looks by running 
-    `ln -s ~/Dotfiles/.bash_profile ~/.bash_profile`.
-
-    - 18.5. With this symlink, you can either edit `~/.bash_profile` or `~/Dotfiles/.bash_profile`
-    and the changes will occur in both spots.
+    Considering that there are two options here, the `.bashrc` or `.bash_profile` option, 
+    I recommend doing the following:
     
-    - 18.6. Now open the file with `vi ~/Dotfiles/.bash_profile` or `vi ~/.bash_profile` and 
-    add the following lines
-        ```
-        source ~/.bashrc
-        export PATH="/usr/local/cuda/bin:$PATH"
-        export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
-        ```
-
-    - 18.7. The reason why I like this method, is becuase you can now source control all
-    of your config files with `git`. You can push this whole `~/Dotfiles` folder to github
-    and now all of you config files are tracked so whenever you start up a new EC2 instance,
-    you can just reload the config files and save time.
-
-    - 18.8. If you took my recomendation then skip to step 21. Otherwise, go to step 20.
+        - 18.1. Create the directory `~/Dotfile` with `mkdir ~/Dotfiles`.
+    
+        - 18.2. `cd` into this directory and run `mkdir ~/Dotfile/.config`. This `.config`
+        is used for any user configuration later on
+    
+        - 18.3. Now create the `.bash_profile` file within `~/Dotfile` by running 
+    
+        - `touch ~/Dotfiles/.bash_profile`
+    
+        - 18.4. Symlink this file to the place where linux actually looks by running 
+        `ln -s ~/Dotfiles/.bash_profile ~/.bash_profile`.
+    
+        - 18.5. With this symlink, you can either edit `~/.bash_profile` or `~/Dotfiles/.bash_profile`
+        and the changes will occur in both spots.
+        
+        - 18.6. Now open the file with `vi ~/Dotfiles/.bash_profile` or `vi ~/.bash_profile` and 
+        add the following lines
+            ```
+            source ~/.bashrc
+            export PATH="/usr/local/cuda/bin:$PATH"
+            export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+            ```
+    
+        - 18.7. The reason why I like this method, is becuase you can now source control all
+        of your config files with `git`. You can push this whole `~/Dotfiles` folder to github
+        and now all of you config files are tracked so whenever you start up a new EC2 instance,
+        you can just reload the config files and save time.
+    
+        - 18.8. If you took my recomendation then skip to step 21. Otherwise, go to step 20.
 
 19. Now source with file with `source ~/.bashrc` (or `source ~/.bash_profile`)
 
