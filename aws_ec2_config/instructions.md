@@ -108,7 +108,7 @@ to move the install icon and hit enter. The install hangs again, so be patient.
     and now all of you config files are tracked so whenever you start up a new EC2 instance,
     you can just reload the config files and save time.
     
-    - 18.8. If you took my recomendation then skip to step 21. Otherwise, go to step 20.
+    - 18.8. If you took my recomendation then skip to step 20. Otherwise, go to step 19.
 
 19. Now source with file with `source ~/.bashrc` (or `source ~/.bash_profile`)
 
