@@ -71,10 +71,12 @@ to move the install icon and hit enter. The install hangs again, so be patient.
 
 18. Edit the `~/.bashrc` (or `~/.bash_profile` if you use that) and add the follwing lines
     anywhere in these files:
+
     ```
     export PATH="/usr/local/cuda/bin:$PATH"
     export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
     ```
+
     Considering that there are two options here, the `.bashrc` or `.bash_profile` option, 
     I recommend doing the following:
     
