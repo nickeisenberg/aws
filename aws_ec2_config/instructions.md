@@ -1,12 +1,12 @@
-* 1. Previous steps include...
+1. Previous steps include...
 
-    1.1. Generating an access key
+    - 1.1. Generating an access key
 
-    1.2. Setting up `aws configure --profile`
+    - 1.2. Setting up `aws configure --profile`
 
-    1.3. Generating a key pair
+    - 1.3. Generating a key pair
 
-    1.4. Making a security group that allows for sufficient inbound and outbount privileges. This 
+    - 1.4. Making a security group that allows for sufficient inbound and outbount privileges. This 
     includes SSH, HTTP, HTTPS and IMCP.
 
 * Use `spot_config.py` to create the EC2 spot instance. The config for this spot instance
