@@ -26,11 +26,11 @@ by the launch request button.
     - 5.2. Run the following command in your local terminal. (Make sure you already have done
     - `aws configure --profile`)
     - ```
-    - aws ec2 reboot-instances \
-    -         --region <region_name> \
-    -         --instance-ids <instance_id> \
-    -         --profile <profile_name>
-    - ```
+    aws ec2 reboot-instances \
+            --region <region_name> \
+            --instance-ids <instance_id> \
+            --profile <profile_name>
+    ```
 
     - 5.3. Wait like 30 seconds and SSH back into the instance.
 
