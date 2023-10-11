@@ -1,8 +1,15 @@
+"""
+A script to set up the S3 bucket.
+
+The fastest way to push a whole folder to a s3 bucket is with aws s3 sync.
+I have written a wrapper that calls this function from within python. The 
+pyaws module will contain helpfull bash wrappers to speed thing up
+"""
+
 import boto3
 import json
-import os
 import time 
-import numpy as np
+import wrappers.pyaws as pyaws
 
 # get the access and secret keys to the aws account
 with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
@@ -20,6 +27,7 @@ session = boto3.Session(
 s3_client = session.client('s3', region_name="us-east-1")
 s3_res = session.resource('s3', region_name="us-east-1")
 
+# List all buckets and create the new bucket if not exists
 buckets = [bucket['Name'] for bucket in s3_client.list_buckets()['Buckets']]
 
 celeba_bucket = 'celeba-for-tut'
@@ -29,22 +37,14 @@ if celeba_bucket not in buckets:
         Bucket=celeba_bucket,
     )
 
+# add a folder for the images 
 bucket = s3_res.Bucket(celeba_bucket)
-bucket.put_object(Key="celeba_imgs/")
+bucket.put_object(Key="imgs/")
 
-rootdir = "/home/nicholas/Datasets/CelebA/img_transformed"
-files = os.listdir(rootdir)
-
-start = time.time()
-for i in range(100):
-    if i % 20 == 0:
-        print(f"Percent Complete {np.round(100 * i / 100, 2)}")
-    s3_client.upload_file(
-        os.path.join(rootdir, files[i]), 
-        celeba_bucket, 
-        os.path.join("celeba_imgs", files[i])
-    )
-end = time.time()
-"""
-This took 20 seconds for 100 images
-"""
+# Push the data to the s3 bucket
+rootdir = "/home/nicholas/Datasets/CelebA/img_transformed_100"
+pyaws.push_folder_to_s3(
+    rootdir=rootdir,
+    bucketdir="s3://celeba-for-tut/imgs",
+    profile="nick"
+)

@@ -1,3 +1,7 @@
+"""
+A script to resize all of the celeba images to (3, 64, 64)
+"""
+
 import os
 from PIL import Image
 from torchvision import transforms, datasets
