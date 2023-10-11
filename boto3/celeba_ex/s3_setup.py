@@ -42,7 +42,7 @@ bucket = s3_res.Bucket(celeba_bucket)
 bucket.put_object(Key="imgs/")
 
 # Push the data to the s3 bucket
-rootdir = "/home/nicholas/Datasets/CelebA/img_transformed_100"
+rootdir = "/home/nicholas/Datasets/CelebA/img_transformed_64"
 pyaws.push_folder_to_s3(
     rootdir=rootdir,
     bucketdir="s3://celeba-for-tut/imgs",
