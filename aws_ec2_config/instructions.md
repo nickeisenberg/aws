@@ -80,7 +80,7 @@ to move the install icon and hit enter. The install hangs again, so be patient.
     Considering that there are two options here, the `.bashrc` or `.bash_profile` option, 
     I recommend doing the following:
     
-    - 18.1. Create the directory `~/Dotfile` with `mkdir ~/Dotfiles`.
+    - 18.1. Create the directory `~/Dotfiles` with `mkdir ~/Dotfiles`.
     
     - 18.2. `cd` into this directory and run `mkdir ~/Dotfile/.config`. This `.config`
     is used for any user configuration later on
