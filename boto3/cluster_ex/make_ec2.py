@@ -51,8 +51,15 @@ ami = "ami-024e6efaf93d85776"
 
 # First lets get all EC2 instances
 all_instances = []
-for x in ec2_client.describe_instances()['Reservations'][0]['Instances']:
-    for tag in x['Tags']:
+# for x in ec2_client.describe_instances()['Reservations'][0]['Instances']:
+#     for tag in x['Tags']:
+#         if tag['Key'] == 'Name':
+#             all_instances.append(tag['Value'])
+all_instances = []
+all_instances_ids = []
+for inst in ec2_client.describe_instances()['Reservations']:
+    all_instances_ids.append(inst['Instances'][0]['InstanceId'])
+    for tag in inst['Instances'][0]['Tags']:
         if tag['Key'] == 'Name':
             all_instances.append(tag['Value'])
 
