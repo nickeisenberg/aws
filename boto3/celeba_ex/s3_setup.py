@@ -8,7 +8,6 @@ pyaws module will contain helpfull bash wrappers to speed thing up
 
 import boto3
 import json
-import time 
 import wrappers.pyaws as pyaws
 
 # get the access and secret keys to the aws account
@@ -31,6 +30,7 @@ s3_res = session.resource('s3', region_name="us-east-1")
 buckets = [bucket['Name'] for bucket in s3_client.list_buckets()['Buckets']]
 
 celeba_bucket = 'celeba-for-tut'
+
 if celeba_bucket not in buckets:
     print('Creating the bucket')
     s3_client.create_bucket(
@@ -42,7 +42,7 @@ bucket = s3_res.Bucket(celeba_bucket)
 bucket.put_object(Key="imgs/")
 
 # Push the data to the s3 bucket
-rootdir = "/home/nicholas/Datasets/CelebA/img_transformed_64"
+rootdir = "/home/nicholas/Datasets/CelebA/img_64_100"
 pyaws.push_folder_to_s3(
     rootdir=rootdir,
     bucketdir="s3://celeba-for-tut/imgs",
