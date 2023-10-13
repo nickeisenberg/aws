@@ -31,6 +31,7 @@ class SecurityGroup:
         self.name_ingress_rules = {}
         self.name_egress_rules = {}
         self._init_name_id_dic()
+        self._init_permissions_dic()
 
     def _init_name_id_dic(self):
         try:
@@ -43,14 +44,14 @@ class SecurityGroup:
         except:
             pass
 
-    def make_name_permissions_dic(self):
+        return None
+
+    def _init_permissions_dic(self):
         for name in self.name_id.keys():
 
-            if name not in self.name_ingress_rules.keys():
-                self.name_ingress_rules = {name: []}
+            self.name_ingress_rules = {name: []}
 
-            if name not in self.name_egress_rules.keys():
-                self.name_egress_rules = {name: []}
+            self.name_egress_rules = {name: []}
 
             rules = self.client.describe_security_group_rules(
                 Filters=[
@@ -61,12 +62,42 @@ class SecurityGroup:
                 ]
             )['SecurityGroupRules']
 
-            egress_after_add = [
+            if len(rules) > 0:
+
+                self.name_ingress_rules[name] = [
+                    x for x in rules if x["IsEgress"] == True
+                ]
+                self.name_egress_rules[name] = [
+                    x for x in rules if x["IsEgress"] == False
+                ]
+        
+        return None
+
+    def update_permissions_dic(self, name):
+        if name not in self.name_id.keys():
+            msg = "The ID of this security group has not been recorded\n"
+            msg += "Update the SecurityGroup.name_id with the corresponding pair"
+            raise Exception(msg)
+
+        rules = self.client.describe_security_group_rules(
+            Filters=[
+                {
+                    "Name": "group-id",
+                    "Values": [self.name_id[name]]
+                }
+            ]
+        )['SecurityGroupRules']
+
+        if len(rules) > 0:
+            self.name_ingress_rules[name] = [
                 x for x in rules if x["IsEgress"] == True
             ]
-            ingress_after_add = [
+            self.name_egress_rules[name] = [
                 x for x in rules if x["IsEgress"] == False
             ]
+        else:
+            raise Exception("This security group has no rules")
+
     
     def _init_security_group(
         self, 
@@ -83,12 +114,12 @@ class SecurityGroup:
         }
 
         try:
-            msg = f"Testing to see if a security group with the name of\n"
-            msg += f"{security_group_name} already exists..."
+            msg = f"Testing to see if {security_group_name} already exists..."
             print(msg)
 
-            if security_group_name in self.name_id.keys():
-                print("The security group already existed")
+            _ = self.name_id[security_group_name]
+
+            print("The security group already existed")
 
             return None
 
@@ -109,7 +140,7 @@ class SecurityGroup:
                     self.client.get_waiter('security_group_exists').wait(
                         Filters=[
                             {
-                                "Key": "vpc-id",
+                                "Name": "vpc-id",
                                 "Values": [self.vpc_id] 
                             }
                         ],
@@ -131,19 +162,26 @@ class SecurityGroup:
                 msg += f"the security exists failed."
                 print(msg)
                 print(type(e), ":", e)
+
+                return None
             
         if remove_default_rules:
 
             print("Now retrieving all default rules...")
 
-            default_rules = self.client.describe_security_group_rules(
-                Filters=[
-                    {
-                        "Name": "group-id",
-                        "Values": [self.name_id[security_group_name]]
-                    }
-                ]
-            )['SecurityGroupRules']
+            # default_rules = self.client.describe_security_group_rules(
+            #     Filters=[
+            #         {
+            #             "Name": "group-id",
+            #             "Values": [self.name_id[security_group_name]]
+            #         }
+            #     ]
+            # )['SecurityGroupRules']
+
+            self.update_permissions_dic(security_group_name)
+
+            default_rules = self.name_egress_rules[security_group_name]
+            default_rules += self.name_ingress_rules[security_group_name]
 
             print(f"There are {len(default_rules)} rules to remove.")
 
@@ -173,14 +211,19 @@ class SecurityGroup:
                             print(type(e1), "", e1)
                             print(type(e2), "", e2)
 
-            rules_after_removal = self.client.describe_security_group_rules(
-                Filters=[
-                    {
-                        "Name": "group-id",
-                        "Values": [self.name_id[security_group_name]]
-                    }
-                ]
-            )['SecurityGroupRules']
+            self.update_permissions_dic(security_group_name)
+
+            # rules_after_removal = self.client.describe_security_group_rules(
+            #     Filters=[
+            #         {
+            #             "Name": "group-id",
+            #             "Values": [self.name_id[security_group_name]]
+            #         }
+            #     ]
+            # )['SecurityGroupRules']
+
+            rules_after_removal = self.name_egress_rules[security_group_name]
+            rules_after_removal += self.name_ingress_rules[security_group_name]
 
             try:
                 if len(rules_after_removal) == 0:
@@ -223,30 +266,32 @@ class SecurityGroup:
                 print("Some of the the IpPermissions were not successfully added.")
                 print(type(e), ":", e)
             
-            rules_after_addition = self.client.describe_security_group_rules(
-                Filters=[
-                    {
-                        "Name": "group-id",
-                        "Values": [self.name_id[security_group_name]]
-                    }
-                ]
-            )['SecurityGroupRules']
+            # rules_after_addition = self.client.describe_security_group_rules(
+            #     Filters=[
+            #         {
+            #             "Name": "group-id",
+            #             "Values": [self.name_id[security_group_name]]
+            #         }
+            #     ]
+            # )['SecurityGroupRules']
 
-            egress_after_add = [
-                x for x in rules_after_addition if x["IsEgress"] == True
-            ]
-            ingress_after_add = [
-                x for x in rules_after_addition if x["IsEgress"] == False
-            ]
+            # egress_after_add = [
+            #     x for x in rules_after_addition if x["IsEgress"] == True
+            # ]
+            # ingress_after_add = [
+            #     x for x in rules_after_addition if x["IsEgress"] == False
+            # ]
+
+            self.update_permissions_dic(security_group_name)
         
             try:
-                if len(egress_after_add) == len(IpPermissions):
+                if len(self.name_ingress_rules[security_group_name]) == len(IpPermissions):
                     print("All egress rules were successfully added!")
             except:
                 print("There was an error with adding the egress rules")
 
             try:
-                if len(ingress_after_add) == len(IpPermissions):
+                if len(self.name_egress_rules[security_group_name]) == len(IpPermissions):
                     print("All ingress rules were successfully added!")
             except:
                 print("There was an error with adding the egress rules")
@@ -298,12 +343,7 @@ session = boto3.Session(
     region_name="us-east-1"
 )
 
-session.region_name
-
-# create the resource and the client
-ec2_res = session.resource('ec2')
 ec2_client = session.client("ec2", region_name="us-east-1")
-
 
 vpc_ids = {}
 for vpc in ec2_client.describe_vpcs()['Vpcs']:
@@ -316,9 +356,6 @@ for vpc in ec2_client.describe_vpcs()['Vpcs']:
     id = vpc['VpcId']
     vpc_ids[name] = id
 
-vpc_ids
-
-security_group_name = "testfrombotoclass"
 
 sec_group = SecurityGroup(
     vpc_id=vpc_ids['copysteps-vpc'],
@@ -350,55 +387,8 @@ IpPermissions = [
     },
 ]
 
+security_group_name = "copystep-sg"
 sec_group.create_security_group(
-    vpc_id=vpc_ids['copysteps-vpc'],
-    security_group_name="copystep-sg",
+    security_group_name=security_group_name,
     Ip_Permissions=IpPermissions
 )
-
-
-
-
-security_group_name
-
-vpc_ids['copysteps-vpc']
-
-sec_group_ids = {}
-for sg in sec_group.client.describe_security_groups()['SecurityGroups']:
-    sec_group_ids[sg['VpcId']] = {
-        "GroupId"sg['GroupId']
-    }
-
-
-sec_group.client.describe_security_groups()['SecurityGroups'][0].keys()
-
-sec_group.client.describe_security_groups()['SecurityGroups'][0]['IpPermissions']
-
-sec_group.name_id
-
-default_rules = sec_group.client.describe_security_group_rules(
-    Filters=[
-        {
-            "Name": "group-id",
-            "Values": [sec_group.name_id['copystep-sg']]
-        }
-    ]
-)['SecurityGroupRules']
-
-
-x  = []
-for sg in sec_group.client.describe_security_groups()['SecurityGroups']:
-    if sg['GroupName'] == 'copystep-sg':
-        x.append(sg)
-
-len(x[0]['IpPermissions'])
-
-x[0]['IpPermissionsEgress']
-
-default_rules[1]
-
-
-
-
-
-
