@@ -8,34 +8,7 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/c
 import boto3
 import json
 
-# get the access and secret keys to the aws account
-with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
-    pw = json.load(oj)
-
-ACCESS_KEY = pw['aws_ACCESS_KEY_nick']
-SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY_nick']
-
-# start the session
-session = boto3.Session(
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_ACCESS_KEY,
-    profile_name="nick",
-    region_name="us-east-1"
-)
-
-# create the resource and the client
-ec2_res = session.resource('ec2')
-ec2_client = session.client("ec2", region_name="us-east-1")
-
-vpcid = ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
-security_group_name = "testfromboto"
-
-sg_config = {
-    "Description": 'A test sg',
-    "GroupName": security_group_name,
-    "VpcId": vpcid,
-    "DryRun": False 
-}
+ 
 
 #--------------------------------------------------
 # Create the security group
@@ -53,7 +26,7 @@ class SecurityGroup:
         self.client = client
         self.resource = resource
     
-    def _make_security_group(
+    def _init_security_group(
         self, 
         vpc_id,
         security_group_name,
@@ -158,7 +131,7 @@ class SecurityGroup:
                 print("Some default rules were not removed")
 
 
-    def _add_rules_to_security_group(self):
+    def _add_rules_to_security_group(self, dryrun=True):
 
         try:
         
@@ -188,7 +161,7 @@ class SecurityGroup:
                         'ToPort': -1,
                     },
                 ],
-                "DryRun": False,
+                "DryRun": dryrun,
             }
             
             sgri_response = self.client.authorize_security_group_ingress(**sg_rules_config)
@@ -220,11 +193,53 @@ class SecurityGroup:
             print(type(e), ":", e)
 
 
-    def create_security_group(self, security_group_name):
+    def create_security_group(
+        self,
+        vpc_id,
+        security_group_name,
+        dryrun=False
+    ):
 
-        self._make_security_group(security_group_name)
+        self._init_security_group(
+            vpc_id,
+            security_group_name,
+            dryrun=dryrun
+        )
 
-        self._add_rules_to_security_group()
+        self._add_rules_to_security_group(dryrun=dryrun)
 
         return None
 
+
+
+# get the access and secret keys to the aws account
+with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
+    pw = json.load(oj)
+
+ACCESS_KEY = pw['aws_ACCESS_KEY_nick']
+SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY_nick']
+
+session = boto3.Session(
+    aws_access_key_id=ACCESS_KEY,
+    aws_secret_access_key=SECRET_ACCESS_KEY,
+    profile_name="nick",
+    region_name="us-east-1"
+)
+
+# create the resource and the client
+ec2_res = session.resource('ec2')
+ec2_client = session.client("ec2", region_name="us-east-1")
+
+vpc_id = ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
+security_group_name = "testfromboto"
+
+sec_group = SecurityGroup(
+    session,
+    ec2_client,
+    ec2_res
+)
+
+sec_group.create_security_group(
+    vpc_id,
+    "test_from_boto_class"
+)
