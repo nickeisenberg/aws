@@ -13,10 +13,6 @@ import boto3
 import json
 
 
-#--------------------------------------------------
-# Create the security group
-#--------------------------------------------------
-
 class SecurityGroup:
 
     def __init__(
@@ -130,7 +126,6 @@ class SecurityGroup:
             try:
                 sg_response = self.client.create_security_group(**sg_config)
         
-                # If 200 then the status is OK.
                 if sg_response['ResponseMetadata']['HTTPStatusCode'] == 200:
                     print(f"The HTTPStatus of the security group is OK")
 
@@ -145,9 +140,6 @@ class SecurityGroup:
                             }
                         ],
                         GroupIds=[self.name_id[security_group_name]],
-                        # GroupNames=[
-                        #     security_group_name,
-                        # ],
                         WaiterConfig={
                             'Delay': 10,
                             'MaxAttempts': 2
@@ -169,14 +161,6 @@ class SecurityGroup:
 
             print("Now retrieving all default rules...")
 
-            # default_rules = self.client.describe_security_group_rules(
-            #     Filters=[
-            #         {
-            #             "Name": "group-id",
-            #             "Values": [self.name_id[security_group_name]]
-            #         }
-            #     ]
-            # )['SecurityGroupRules']
 
             self.update_permissions_dic(security_group_name)
 
@@ -213,14 +197,6 @@ class SecurityGroup:
 
             self.update_permissions_dic(security_group_name)
 
-            # rules_after_removal = self.client.describe_security_group_rules(
-            #     Filters=[
-            #         {
-            #             "Name": "group-id",
-            #             "Values": [self.name_id[security_group_name]]
-            #         }
-            #     ]
-            # )['SecurityGroupRules']
 
             rules_after_removal = self.name_egress_rules[security_group_name]
             rules_after_removal += self.name_ingress_rules[security_group_name]
@@ -266,21 +242,6 @@ class SecurityGroup:
                 print("Some of the the IpPermissions were not successfully added.")
                 print(type(e), ":", e)
             
-            # rules_after_addition = self.client.describe_security_group_rules(
-            #     Filters=[
-            #         {
-            #             "Name": "group-id",
-            #             "Values": [self.name_id[security_group_name]]
-            #         }
-            #     ]
-            # )['SecurityGroupRules']
-
-            # egress_after_add = [
-            #     x for x in rules_after_addition if x["IsEgress"] == True
-            # ]
-            # ingress_after_add = [
-            #     x for x in rules_after_addition if x["IsEgress"] == False
-            # ]
 
             self.update_permissions_dic(security_group_name)
         
@@ -322,73 +283,3 @@ class SecurityGroup:
         )
 
         return None
-
-
-#--------------------------------------------------
-# Test the class
-#--------------------------------------------------
-
-
-# get the access and secret keys to the aws account
-with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
-    pw = json.load(oj)
-
-ACCESS_KEY = pw['aws_ACCESS_KEY_nick']
-SECRET_ACCESS_KEY = pw['aws_SECRET_ACCESS_KEY_nick']
-
-session = boto3.Session(
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_ACCESS_KEY,
-    profile_name="nick",
-    region_name="us-east-1"
-)
-
-ec2_client = session.client("ec2", region_name="us-east-1")
-
-vpc_ids = {}
-for vpc in ec2_client.describe_vpcs()['Vpcs']:
-    try:
-        for tag in vpc['Tags']:
-            if tag['Key'] == 'Name':
-                name = tag['Value']
-    except:
-        name = 'NotNamed'
-    id = vpc['VpcId']
-    vpc_ids[name] = id
-
-
-sec_group = SecurityGroup(
-    vpc_id=vpc_ids['copysteps-vpc'],
-    session=session,
-)
-
-IpPermissions = [
-    {
-        'FromPort': 22,
-        'IpProtocol': 'tcp',
-        'IpRanges': [
-            {
-                'CidrIp': '0.0.0.0/0',
-                'Description': 'Allow SSH from everywhere'
-            },
-        ],
-        'ToPort': 22,
-    },
-    {
-        'FromPort': -1,
-        'IpProtocol': 'icmp',
-        'IpRanges': [
-            {
-                'CidrIp': '0.0.0.0/0',
-                'Description': 'Allow ping from everywhere'
-            },
-        ],
-        'ToPort': -1,
-    },
-]
-
-security_group_name = "copystep-sg"
-sec_group.create_security_group(
-    security_group_name=security_group_name,
-    Ip_Permissions=IpPermissions
-)
