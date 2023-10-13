@@ -2,7 +2,11 @@
 Create a security group and configure the rules of the group
 
 See links...
+for adding ingress or egress
 https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/authorize_security_group_ingress.html
+
+for waiters
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/waiter/InstanceRunning.html#
 """
 
 import boto3
@@ -17,18 +21,55 @@ class SecurityGroup:
 
     def __init__(
         self,
+        vpc_id,
         session,
-        client,
-        resource,
     ):
+        self.vpc_id = vpc_id 
         self.session = session
-        self.client = client
-        self.resource = resource
+        self.client = session.client("ec2", region_name=session.region_name)
         self.name_id = {}
+        self.name_ingress_rules = {}
+        self.name_egress_rules = {}
+        self._init_name_id_dic()
+
+    def _init_name_id_dic(self):
+        try:
+            for sg in sec_group.client.describe_security_groups()['SecurityGroups']:
+                if sg['VpcId'] != self.vpc_id:
+                    continue
+                if sg['GroupName'] not in self.name_id.keys():
+                    self.name_id[sg['GroupName']] = sg['GroupId']
+            return None
+        except:
+            pass
+
+    def make_name_permissions_dic(self):
+        for name in self.name_id.keys():
+
+            if name not in self.name_ingress_rules.keys():
+                self.name_ingress_rules = {name: []}
+
+            if name not in self.name_egress_rules.keys():
+                self.name_egress_rules = {name: []}
+
+            rules = self.client.describe_security_group_rules(
+                Filters=[
+                    {
+                        "Name": "group-id",
+                        "Values": [self.name_id[name]]
+                    }
+                ]
+            )['SecurityGroupRules']
+
+            egress_after_add = [
+                x for x in rules if x["IsEgress"] == True
+            ]
+            ingress_after_add = [
+                x for x in rules if x["IsEgress"] == False
+            ]
     
     def _init_security_group(
         self, 
-        vpc_id,
         security_group_name,
         remove_default_rules=True,
         dryrun=True
@@ -37,28 +78,20 @@ class SecurityGroup:
         sg_config = {
             "Description": 'A test sg',
             "GroupName": security_group_name,
-            "VpcId": vpc_id,
+            "VpcId": self.vpc_id,
             "DryRun": dryrun 
         }
-
 
         try:
             msg = f"Testing to see if a security group with the name of\n"
             msg += f"{security_group_name} already exists..."
             print(msg)
 
-            self.client.get_waiter('security_group_exists').wait(
-                GroupNames=[
-                    security_group_name,
-                ],
-                WaiterConfig={
-                    'Delay': 10,
-                    'MaxAttempts': 1
-                }
-            )
-            print("The security group already existed")
+            if security_group_name in self.name_id.keys():
+                print("The security group already existed")
 
             return None
+
         except:
             msg = f"The security group did not exist...\n"
             msg += f"Now initializing the security group"
@@ -69,19 +102,27 @@ class SecurityGroup:
                 # If 200 then the status is OK.
                 if sg_response['ResponseMetadata']['HTTPStatusCode'] == 200:
                     print(f"The HTTPStatus of the security group is OK")
+
+                    self.name_id[security_group_name] = sg_response['GroupId']
         
                     # Will return None if exists
                     self.client.get_waiter('security_group_exists').wait(
-                        GroupNames=[
-                            security_group_name,
+                        Filters=[
+                            {
+                                "Key": "vpc-id",
+                                "Values": [self.vpc_id] 
+                            }
                         ],
+                        GroupIds=[self.name_id[security_group_name]],
+                        # GroupNames=[
+                        #     security_group_name,
+                        # ],
                         WaiterConfig={
                             'Delay': 10,
                             'MaxAttempts': 2
                         }
                     )
 
-                    self.name_id[security_group_name] = sg_response['GroupId']
                     print("Sucess! The security group has been made")
 
             except Exception as e:
@@ -219,14 +260,12 @@ class SecurityGroup:
 
     def create_security_group(
         self,
-        vpc_id,
         security_group_name,
         Ip_Permissions,
         dryrun=False
     ):
 
         self._init_security_group(
-            vpc_id,
             security_group_name,
             dryrun=dryrun
         )
@@ -259,17 +298,31 @@ session = boto3.Session(
     region_name="us-east-1"
 )
 
+session.region_name
+
 # create the resource and the client
 ec2_res = session.resource('ec2')
 ec2_client = session.client("ec2", region_name="us-east-1")
 
-vpc_id = ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
-security_group_name = "testfromboto"
+
+vpc_ids = {}
+for vpc in ec2_client.describe_vpcs()['Vpcs']:
+    try:
+        for tag in vpc['Tags']:
+            if tag['Key'] == 'Name':
+                name = tag['Value']
+    except:
+        name = 'NotNamed'
+    id = vpc['VpcId']
+    vpc_ids[name] = id
+
+vpc_ids
+
+security_group_name = "testfrombotoclass"
 
 sec_group = SecurityGroup(
-    session,
-    ec2_client,
-    ec2_res
+    vpc_id=vpc_ids['copysteps-vpc'],
+    session=session,
 )
 
 IpPermissions = [
@@ -298,7 +351,54 @@ IpPermissions = [
 ]
 
 sec_group.create_security_group(
-    vpc_id=vpc_id,
-    security_group_name="test_from_boto_class",
+    vpc_id=vpc_ids['copysteps-vpc'],
+    security_group_name="copystep-sg",
     Ip_Permissions=IpPermissions
 )
+
+
+
+
+security_group_name
+
+vpc_ids['copysteps-vpc']
+
+sec_group_ids = {}
+for sg in sec_group.client.describe_security_groups()['SecurityGroups']:
+    sec_group_ids[sg['VpcId']] = {
+        "GroupId"sg['GroupId']
+    }
+
+
+sec_group.client.describe_security_groups()['SecurityGroups'][0].keys()
+
+sec_group.client.describe_security_groups()['SecurityGroups'][0]['IpPermissions']
+
+sec_group.name_id
+
+default_rules = sec_group.client.describe_security_group_rules(
+    Filters=[
+        {
+            "Name": "group-id",
+            "Values": [sec_group.name_id['copystep-sg']]
+        }
+    ]
+)['SecurityGroupRules']
+
+
+x  = []
+for sg in sec_group.client.describe_security_groups()['SecurityGroups']:
+    if sg['GroupName'] == 'copystep-sg':
+        x.append(sg)
+
+len(x[0]['IpPermissions'])
+
+x[0]['IpPermissionsEgress']
+
+default_rules[1]
+
+
+
+
+
+
