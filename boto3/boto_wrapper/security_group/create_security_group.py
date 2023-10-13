@@ -9,10 +9,6 @@ for waiters
 https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/waiter/InstanceRunning.html#
 """
 
-import boto3
-import json
-
-
 class SecurityGroup:
 
     def __init__(
@@ -31,7 +27,7 @@ class SecurityGroup:
 
     def _init_name_id_dic(self):
         try:
-            for sg in sec_group.client.describe_security_groups()['SecurityGroups']:
+            for sg in self.client.describe_security_groups()['SecurityGroups']:
                 if sg['VpcId'] != self.vpc_id:
                     continue
                 if sg['GroupName'] not in self.name_id.keys():
@@ -43,11 +39,11 @@ class SecurityGroup:
         return None
 
     def _init_permissions_dic(self):
+
+        self.name_ingress_rules = {name: [] for name in self.name_id.keys()}
+        self.name_egress_rules = {name: [] for name in self.name_id.keys()}
+
         for name in self.name_id.keys():
-
-            self.name_ingress_rules = {name: []}
-
-            self.name_egress_rules = {name: []}
 
             rules = self.client.describe_security_group_rules(
                 Filters=[
@@ -84,15 +80,14 @@ class SecurityGroup:
             ]
         )['SecurityGroupRules']
 
-        if len(rules) > 0:
-            self.name_ingress_rules[name] = [
-                x for x in rules if x["IsEgress"] == True
-            ]
-            self.name_egress_rules[name] = [
-                x for x in rules if x["IsEgress"] == False
-            ]
-        else:
-            raise Exception("This security group has no rules")
+        self.name_ingress_rules[name] = [
+            x for x in rules if x["IsEgress"] == True
+        ]
+        self.name_egress_rules[name] = [
+            x for x in rules if x["IsEgress"] == False
+        ]
+
+        return None
 
     
     def _init_security_group(
@@ -117,7 +112,7 @@ class SecurityGroup:
 
             print("The security group already existed")
 
-            return None
+            return False
 
         except:
             msg = f"The security group did not exist...\n"
@@ -155,7 +150,7 @@ class SecurityGroup:
                 print(msg)
                 print(type(e), ":", e)
 
-                return None
+                return False
             
         if remove_default_rules:
 
@@ -194,6 +189,7 @@ class SecurityGroup:
                             print("Both egress and ingress failed")
                             print(type(e1), "", e1)
                             print(type(e2), "", e2)
+                            return False
 
             self.update_permissions_dic(security_group_name)
 
@@ -204,10 +200,12 @@ class SecurityGroup:
             try:
                 if len(rules_after_removal) == 0:
                     msg=  f"Successfully removed all default rules\n"
-                    msg += f"Now adding the new rules to the security group."
                     print(msg)
+
+                    return True
             except:
                 print("Some default rules were not removed")
+                return False
 
 
     def _add_rules_to_security_group(
@@ -217,6 +215,7 @@ class SecurityGroup:
         dryrun=True
     ):
 
+        print(f"Now adding the new rules to the security group.")
         try:
         
             sg_rules_config = {
@@ -271,15 +270,16 @@ class SecurityGroup:
         dryrun=False
     ):
 
-        self._init_security_group(
+        moveon = self._init_security_group(
             security_group_name,
             dryrun=dryrun
         )
-
-        self._add_rules_to_security_group(
-            security_group_name,
-            Ip_Permissions,
-            dryrun=dryrun
-        )
+    
+        if moveon:
+            self._add_rules_to_security_group(
+                security_group_name,
+                Ip_Permissions,
+                dryrun=dryrun
+            )
 
         return None
