@@ -63,7 +63,7 @@ instance_config = {
       "Tags": [
         {
           "Key": "Name",
-          "Value": "testebsvol"
+          "Value": "testec2"
         }
       ]
     }
@@ -86,3 +86,6 @@ for inst in ec2_client.describe_instances()['Reservations']:
     for tag in inst['Instances'][0]['Tags']:
         if tag['Key'] == 'Name':
             all_instances.append(tag['Value'])
+
+ec2_client.describe_instances()['Reservations'][0]['Instances'][0]['PublicIpAddress']
+
