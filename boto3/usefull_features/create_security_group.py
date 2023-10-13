@@ -24,6 +24,7 @@ class SecurityGroup:
         self.session = session
         self.client = client
         self.resource = resource
+        self.name_id = {}
     
     def _init_security_group(
         self, 
@@ -40,7 +41,12 @@ class SecurityGroup:
             "DryRun": dryrun 
         }
 
+
         try:
+            msg = f"Testing to see if a security group with the name of\n"
+            msg += f"{security_group_name} already exists..."
+            print(msg)
+
             self.client.get_waiter('security_group_exists').wait(
                 GroupNames=[
                     security_group_name,
@@ -50,16 +56,19 @@ class SecurityGroup:
                     'MaxAttempts': 1
                 }
             )
-            print("A security group with that name already exists")    
+            print("The security group already existed")
+
+            return None
         except:
-            print("The security group did not exist...")
-            print("Now creating the security group...")
+            msg = f"The security group did not exist...\n"
+            msg += f"Now initializing the security group"
+            print(msg)
             try:
-                self.sg_response = self.client.create_security_group(**sg_config)
+                sg_response = self.client.create_security_group(**sg_config)
         
                 # If 200 then the status is OK.
-                if self.sg_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                    print("The Status of the security group is OK")
+                if sg_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                    print(f"The HTTPStatus of the security group is OK")
         
                     # Will return None if exists
                     self.client.get_waiter('security_group_exists').wait(
@@ -71,43 +80,53 @@ class SecurityGroup:
                             'MaxAttempts': 2
                         }
                     )
+
+                    self.name_id[security_group_name] = sg_response['GroupId']
                     print("Sucess! The security group has been made")
+
             except Exception as e:
-                print("Failed to create the security group")
+                msg = f"Failed to create the security group \n"
+                msg += f"Either the HTTPStatus is not ok or the check to see if\n"
+                msg += f"the security exists failed."
+                print(msg)
                 print(type(e), ":", e)
             
         if remove_default_rules:
+
+            print("Now retrieving all default rules...")
 
             default_rules = self.client.describe_security_group_rules(
                 Filters=[
                     {
                         "Name": "group-id",
-                        "Values": [self.sg_response['GroupId']]
+                        "Values": [self.name_id[security_group_name]]
                     }
                 ]
             )['SecurityGroupRules']
+
+            print(f"There are {len(default_rules)} rules to remove.")
 
             if len(default_rules) > 0:
 
                 print("Removing the default rules")
                 
-                for rule in default_rules:
+                for i, rule in enumerate(default_rules):
                     
                     ruleid = rule['SecurityGroupRuleId']
                     
                     try:
                         rr_response = self.client.revoke_security_group_egress(
-                            GroupId= self.sg_response['GroupId'],
+                            GroupId= self.name_id[security_group_name],
                             SecurityGroupRuleIds=[ruleid]
                         )
                     except Exception as e1:
                         try:
                             rr_response = self.client.revoke_security_group_ingress(
-                                GroupId= self.sg_response['GroupId'],
+                                GroupId= self.name_id[security_group_name],
                                 SecurityGroupRuleIds=[ruleid]
                             )
 
-                            print("Default Rule successfully removed!")
+                            print(f"Default Rule {i} successfully removed!")
                         except Exception as e2:
                             print("Both egress and ingress failed")
                             print(type(e1), "", e1)
@@ -117,21 +136,23 @@ class SecurityGroup:
                 Filters=[
                     {
                         "Name": "group-id",
-                        "Values": [self.sg_response['GroupId']]
+                        "Values": [self.name_id[security_group_name]]
                     }
                 ]
             )['SecurityGroupRules']
 
             try:
                 if len(rules_after_removal) == 0:
-                    print("Successfully removed all default rules")
-                    print("Now adding the new rules to the security group.")
+                    msg=  f"Successfully removed all default rules\n"
+                    msg += f"Now adding the new rules to the security group."
+                    print(msg)
             except:
                 print("Some default rules were not removed")
 
 
     def _add_rules_to_security_group(
         self,
+        security_group_name,
         IpPermissions,
         dryrun=True
     ):
@@ -139,37 +160,60 @@ class SecurityGroup:
         try:
         
             sg_rules_config = {
-                "GroupId": self.sg_response['GroupId'],
+                "GroupId": self.name_id[security_group_name],
                 "IpPermissions": IpPermissions,
                 "DryRun": dryrun,
             }
-            
-            sgri_response = self.client.authorize_security_group_ingress(**sg_rules_config)
-            if sgri_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                print("The Status of the ingress rules is OK")
+    
+            try:
+                sgri_response = self.client.authorize_security_group_ingress(
+                    **sg_rules_config
+                )
+                if sgri_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                    print("The HTTPStatus of the ingress rules is OK")
 
-            sgre_response = self.client.authorize_security_group_egress(**sg_rules_config)
-            if sgre_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                print("The Status of the egress rules is OK")
+                sgre_response = self.client.authorize_security_group_egress(
+                    **sg_rules_config
+                )
+                if sgre_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                    print("The HTTPStatus of the egress rules is OK")
+
+            except Exception as e:
+                print("Some of the the IpPermissions were not successfully added.")
+                print(type(e), ":", e)
             
             rules_after_addition = self.client.describe_security_group_rules(
                 Filters=[
                     {
                         "Name": "group-id",
-                        "Values": [self.sg_response['GroupId']]
+                        "Values": [self.name_id[security_group_name]]
                     }
                 ]
             )['SecurityGroupRules']
+
+            egress_after_add = [
+                x for x in rules_after_addition if x["IsEgress"] == True
+            ]
+            ingress_after_add = [
+                x for x in rules_after_addition if x["IsEgress"] == False
+            ]
         
             try:
-                if len(rules_after_addition) == 4:
-                    print("All rules were successfully added")
+                if len(egress_after_add) == len(IpPermissions):
+                    print("All egress rules were successfully added!")
             except:
-                print("There was an error with adding the rules")
-        
+                print("There was an error with adding the egress rules")
+
+            try:
+                if len(ingress_after_add) == len(IpPermissions):
+                    print("All ingress rules were successfully added!")
+            except:
+                print("There was an error with adding the egress rules")
+
+            print("Security group was successfully added")
         
         except Exception as e:
-            print("The rules did not add")
+            print("The security group was NOT successfully added.")
             print(type(e), ":", e)
 
 
@@ -188,11 +232,17 @@ class SecurityGroup:
         )
 
         self._add_rules_to_security_group(
+            security_group_name,
             Ip_Permissions,
             dryrun=dryrun
         )
 
         return None
+
+
+#--------------------------------------------------
+# Test the class
+#--------------------------------------------------
 
 
 # get the access and secret keys to the aws account
@@ -252,8 +302,3 @@ sec_group.create_security_group(
     security_group_name="test_from_boto_class",
     Ip_Permissions=IpPermissions
 )
-
-
-
-
-
