@@ -8,7 +8,6 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/c
 import boto3
 import json
 
- 
 
 #--------------------------------------------------
 # Create the security group
@@ -131,36 +130,17 @@ class SecurityGroup:
                 print("Some default rules were not removed")
 
 
-    def _add_rules_to_security_group(self, dryrun=True):
+    def _add_rules_to_security_group(
+        self,
+        IpPermissions,
+        dryrun=True
+    ):
 
         try:
         
             sg_rules_config = {
                 "GroupId": self.sg_response['GroupId'],
-                "IpPermissions":[
-                    {
-                        'FromPort': 22,
-                        'IpProtocol': 'tcp',
-                        'IpRanges': [
-                            {
-                                'CidrIp': '0.0.0.0/0',
-                                'Description': 'Allow SSH from everywhere'
-                            },
-                        ],
-                        'ToPort': 22,
-                    },
-                    {
-                        'FromPort': -1,
-                        'IpProtocol': 'icmp',
-                        'IpRanges': [
-                            {
-                                'CidrIp': '0.0.0.0/0',
-                                'Description': 'Allow ping from everywhere'
-                            },
-                        ],
-                        'ToPort': -1,
-                    },
-                ],
+                "IpPermissions": IpPermissions,
                 "DryRun": dryrun,
             }
             
@@ -197,6 +177,7 @@ class SecurityGroup:
         self,
         vpc_id,
         security_group_name,
+        Ip_Permissions,
         dryrun=False
     ):
 
@@ -206,10 +187,12 @@ class SecurityGroup:
             dryrun=dryrun
         )
 
-        self._add_rules_to_security_group(dryrun=dryrun)
+        self._add_rules_to_security_group(
+            Ip_Permissions,
+            dryrun=dryrun
+        )
 
         return None
-
 
 
 # get the access and secret keys to the aws account
@@ -239,7 +222,38 @@ sec_group = SecurityGroup(
     ec2_res
 )
 
+IpPermissions = [
+    {
+        'FromPort': 22,
+        'IpProtocol': 'tcp',
+        'IpRanges': [
+            {
+                'CidrIp': '0.0.0.0/0',
+                'Description': 'Allow SSH from everywhere'
+            },
+        ],
+        'ToPort': 22,
+    },
+    {
+        'FromPort': -1,
+        'IpProtocol': 'icmp',
+        'IpRanges': [
+            {
+                'CidrIp': '0.0.0.0/0',
+                'Description': 'Allow ping from everywhere'
+            },
+        ],
+        'ToPort': -1,
+    },
+]
+
 sec_group.create_security_group(
-    vpc_id,
-    "test_from_boto_class"
+    vpc_id=vpc_id,
+    security_group_name="test_from_boto_class",
+    Ip_Permissions=IpPermissions
 )
+
+
+
+
+
