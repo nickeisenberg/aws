@@ -23,7 +23,7 @@ class VPC:
 
         return response
 
-    def make_igw(self, igw_config):
+    def _make_igw(self, igw_config):
         response = client.create_internet_gateway(
             **igw_config
         )
@@ -39,6 +39,27 @@ class VPC:
         return response
 
     def _make_subnet(self, subnet_config):
+        response = self.session.resource('ec2').Vpc(vpcid).create_subnet(
+            **subnet_config
+        )
+
+        return response
+
+    def _create_route_table(self, rt_config):
+
+        response = self.client.create_route_table(**rt_config)
+
+        return response
 
 
+    def _create_route(self, cr_config):
+        response = self.client.create_route(**cr_config)
 
+        return response
+    
+
+    def _associate_route_table(self, **art_config):
+
+        response = client.associate_route_table(**art_config)
+
+        return response
