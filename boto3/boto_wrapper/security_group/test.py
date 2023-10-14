@@ -27,10 +27,16 @@ for vpc in ec2_client.describe_vpcs()['Vpcs']:
     vpc_ids[name] = id
 
 
-sec_group = SecurityGroup(
-    vpc_id=vpc_ids['copysteps-vpc'],
-    session=session,
-)
+security_group_name = "copysteps-sg"
+vpc_id = vpc_ids['copysteps-vpc']
+dryrun=False
+
+sg_config = {
+    "Description": 'Created from the boto wrapper',
+    "GroupName": security_group_name,
+    "VpcId": vpc_id,
+    "DryRun": dryrun 
+}
 
 IpPermissions = [
     {
@@ -56,9 +62,28 @@ IpPermissions = [
         'ToPort': -1,
     },
 ]
+ingress_config = {
+    "IpPermissions": IpPermissions,
+    "DryRun": dryrun,
+}
+egress_config = {
+    "IpPermissions": IpPermissions,
+    "DryRun": dryrun,
+}
 
-security_group_name = "copystep-sg"
+sec_group = SecurityGroup(
+    vpc_id=vpc_id,
+    session=session,
+)
+
 sec_group.create_security_group(
-    security_group_name=security_group_name,
-    Ip_Permissions=IpPermissions
+    sg_config,
+    ingress_config,
+    egress_config
+)
+
+sec_group._add_rules_to_security_group(
+    "copysteps-sg",
+    ingress_config,
+    egress_config
 )

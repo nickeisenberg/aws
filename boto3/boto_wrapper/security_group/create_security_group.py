@@ -92,23 +92,24 @@ class SecurityGroup:
     
     def _init_security_group(
         self, 
-        security_group_name,
+        sg_config: dict,
         remove_default_rules=True,
-        dryrun=True
     ):
-
-        sg_config = {
-            "Description": 'A test sg',
-            "GroupName": security_group_name,
-            "VpcId": self.vpc_id,
-            "DryRun": dryrun 
-        }
+        """
+        Parameters
+        ----------
+        sg_config: dict
+            The **kwargs for boto3.EC2.Client.create_security_group(**kwargs)
+        remove_default_rules: boolean
+            Remove the default rules that are auto set when creating a new 
+            security group.
+        """
 
         try:
-            msg = f"Testing to see if {security_group_name} already exists..."
+            msg = f"Testing to see if {sg_config['GroupName']} already exists..."
             print(msg)
 
-            _ = self.name_id[security_group_name]
+            _ = self.name_id[sg_config['GroupName']]
 
             print("The security group already existed")
 
@@ -124,7 +125,7 @@ class SecurityGroup:
                 if sg_response['ResponseMetadata']['HTTPStatusCode'] == 200:
                     print(f"The HTTPStatus of the security group is OK")
 
-                    self.name_id[security_group_name] = sg_response['GroupId']
+                    self.name_id[sg_config['GroupName']] = sg_response['GroupId']
         
                     # Will return None if exists
                     self.client.get_waiter('security_group_exists').wait(
@@ -134,7 +135,7 @@ class SecurityGroup:
                                 "Values": [self.vpc_id] 
                             }
                         ],
-                        GroupIds=[self.name_id[security_group_name]],
+                        GroupIds=[self.name_id[sg_config['GroupName']]],
                         WaiterConfig={
                             'Delay': 10,
                             'MaxAttempts': 2
@@ -157,10 +158,10 @@ class SecurityGroup:
             print("Now retrieving all default rules...")
 
 
-            self.update_permissions_dic(security_group_name)
+            self.update_permissions_dic(sg_config['GroupName'])
 
-            default_rules = self.name_egress_rules[security_group_name]
-            default_rules += self.name_ingress_rules[security_group_name]
+            default_rules = self.name_egress_rules[sg_config['GroupName']]
+            default_rules += self.name_ingress_rules[sg_config['GroupName']]
 
             print(f"There are {len(default_rules)} rules to remove.")
 
@@ -174,13 +175,13 @@ class SecurityGroup:
                     
                     try:
                         rr_response = self.client.revoke_security_group_egress(
-                            GroupId= self.name_id[security_group_name],
+                            GroupId= self.name_id[sg_config['GroupName']],
                             SecurityGroupRuleIds=[ruleid]
                         )
                     except Exception as e1:
                         try:
                             rr_response = self.client.revoke_security_group_ingress(
-                                GroupId= self.name_id[security_group_name],
+                                GroupId= self.name_id[sg_config['GroupName']],
                                 SecurityGroupRuleIds=[ruleid]
                             )
 
@@ -191,11 +192,11 @@ class SecurityGroup:
                             print(type(e2), "", e2)
                             return False
 
-            self.update_permissions_dic(security_group_name)
+            self.update_permissions_dic(sg_config['GroupName'])
 
 
-            rules_after_removal = self.name_egress_rules[security_group_name]
-            rules_after_removal += self.name_ingress_rules[security_group_name]
+            rules_after_removal = self.name_egress_rules[sg_config['GroupName']]
+            rules_after_removal += self.name_ingress_rules[sg_config['GroupName']]
 
             try:
                 if len(rules_after_removal) == 0:
@@ -211,49 +212,73 @@ class SecurityGroup:
     def _add_rules_to_security_group(
         self,
         security_group_name,
-        IpPermissions,
-        dryrun=True
+        ingress_config,
+        egress_config
     ):
+        """
+        Parameters
+        ----------
+        security_group_name: str
+            The name of the security group
+        ingress_config: dict 
+            The kwargs client.authorize_security_group_ingress(**ingress_config)
+            Do not enter the group name into the dictionary though.
+        egress_config: dict 
+            The kwargs client.authorize_security_group_egress(**egress_config)
+            Do not enter the group name into the dictionary though.
+        """
 
         print(f"Now adding the new rules to the security group.")
         try:
-        
-            sg_rules_config = {
-                "GroupId": self.name_id[security_group_name],
-                "IpPermissions": IpPermissions,
-                "DryRun": dryrun,
-            }
+
+            ingress_config["GroupId"] = self.name_id[security_group_name]
+            egress_config["GroupId"] = self.name_id[security_group_name]
     
             try:
                 sgri_response = self.client.authorize_security_group_ingress(
-                    **sg_rules_config
+                    **ingress_config
                 )
                 if sgri_response['ResponseMetadata']['HTTPStatusCode'] == 200:
                     print("The HTTPStatus of the ingress rules is OK")
 
                 sgre_response = self.client.authorize_security_group_egress(
-                    **sg_rules_config
+                    **egress_config
                 )
                 if sgre_response['ResponseMetadata']['HTTPStatusCode'] == 200:
                     print("The HTTPStatus of the egress rules is OK")
 
             except Exception as e:
+
                 print("Some of the the IpPermissions were not successfully added.")
                 print(type(e), ":", e)
+
+                return None
             
 
             self.update_permissions_dic(security_group_name)
         
             try:
-                if len(self.name_ingress_rules[security_group_name]) == len(IpPermissions):
+
+                if len(
+                    self.name_ingress_rules[security_group_name]
+                ) == len(ingress_config['IpPermissions']):
+
                     print("All egress rules were successfully added!")
+
             except:
+
                 print("There was an error with adding the egress rules")
 
             try:
-                if len(self.name_egress_rules[security_group_name]) == len(IpPermissions):
+
+                if len(
+                    self.name_egress_rules[security_group_name]
+                ) == len(egress_config["IpPermissions"]):
+
                     print("All ingress rules were successfully added!")
+
             except:
+
                 print("There was an error with adding the egress rules")
 
             print("Security group was successfully added")
@@ -265,21 +290,20 @@ class SecurityGroup:
 
     def create_security_group(
         self,
-        security_group_name,
-        Ip_Permissions,
-        dryrun=False
+        sg_config,
+        ingress_config,
+        egress_config,
     ):
 
         moveon = self._init_security_group(
-            security_group_name,
-            dryrun=dryrun
+            sg_config,
         )
     
         if moveon:
             self._add_rules_to_security_group(
-                security_group_name,
-                Ip_Permissions,
-                dryrun=dryrun
+                sg_config['GroupName'],
+                ingress_config,
+                egress_config,
             )
 
         return None
