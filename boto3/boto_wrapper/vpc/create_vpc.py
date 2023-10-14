@@ -2,10 +2,6 @@
 VPC and more from the aws consol
 """
 
-import boto3
-
-client = session.client("vpc", region_name=session.region_name)
-
 class VPC:
 
     def __init__(
@@ -17,14 +13,14 @@ class VPC:
 
     def _make_vpc(self, vpc_config): 
         
-        response = client.create_vpc(
+        response = self.client.create_vpc(
             **vpc_config
         )
 
         return response
 
     def _make_igw(self, igw_config):
-        response = client.create_internet_gateway(
+        response = self.client.create_internet_gateway(
             **igw_config
         )
 
@@ -38,8 +34,8 @@ class VPC:
 
         return response
 
-    def _make_subnet(self, subnet_config):
-        response = self.session.resource('ec2').Vpc(vpcid).create_subnet(
+    def _make_subnet(self, vpc_id, subnet_config):
+        response = self.session.resource('ec2').Vpc(vpc_id).create_subnet(
             **subnet_config
         )
 
@@ -60,6 +56,6 @@ class VPC:
 
     def _associate_route_table(self, **art_config):
 
-        response = client.associate_route_table(**art_config)
+        response = self.client.associate_route_table(**art_config)
 
         return response
