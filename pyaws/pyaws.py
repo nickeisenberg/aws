@@ -3,7 +3,7 @@ import subprocess
 
 def copy_dir_to_s3(
     source_dir, 
-    bucket_name,
+    save_dir,
     profile,
     notify_after=0
     ):
@@ -19,8 +19,8 @@ def copy_dir_to_s3(
     source_dir: str
         The full file path to the local dir containing the files that need to be
         moved to s3.
-    bucket_name: str
-        Just the name of the s3 bucket. In other words, <bucket_name> and not
+    save_dir: str
+        Full path of the dir being saved to. In other words, <bucket_name> and not
         s3://<bucket_name>.
         
     profile: str
@@ -45,8 +45,8 @@ def copy_dir_to_s3(
                 path_to_bash, 
                 "--source-dir", 
                 source_dir, 
-                "--bucket-name", 
-                bucket_name, 
+                "--save-dir", 
+                save_dir, 
                 "--profile", 
                 profile, 
                 "--notify-after", 
@@ -70,7 +70,8 @@ def copy_dir_to_s3(
 
 def sync_dir_to_s3(
     source_dir, 
-    bucket_name,
+    # bucket_name,
+    save_dir,
     profile,
     notify_after=0
     ):
@@ -117,8 +118,10 @@ def sync_dir_to_s3(
                 path_to_bash, 
                 "--source-dir", 
                 source_dir, 
-                "--bucket-name", 
-                bucket_name, 
+                # "--bucket-name", 
+                # bucket_name, 
+                "--save-dir", 
+                save_dir, 
                 "--profile", 
                 profile, 
                 "--notify-after", 

@@ -3,7 +3,8 @@
 # Define a function to sync files to an S3 bucket
 _sync_dir_to_s3() {
   local source_dir=""
-  local bucket_name=""
+  # local bucket_name=""
+  local save_dir=""
   local notify_after=0
   local profile=""
 
@@ -13,8 +14,12 @@ _sync_dir_to_s3() {
         source_dir="$2"
         shift 2
         ;;
-      --bucket-name)
-        bucket_name="$2"
+      # --bucket-name)
+      #   bucket_name="$2"
+      #   shift 2
+      #   ;;
+      --save-dir)
+        save_dir="$2"
         shift 2
         ;;
       --notify-after)
@@ -32,8 +37,9 @@ _sync_dir_to_s3() {
     esac
   done
 
-  if [[ -z "$source_dir" || -z "$bucket_name" ]]; then
-    echo "Usage: sync_to_s3 --source-dir <source_dir> --bucket-name <bucket_name> [--notify-after <notify_after>] [--profile <profile>]"
+  # if [[ -z "$source_dir" || -z "$bucket_name" ]]; then
+  if [[ -z "$source_dir" || -z "$save_dir" ]]; then
+    echo "Usage: sync_to_s3 --source-dir <source_dir> --save-dir <save_dir> [--notify-after <notify_after>] [--profile <profile>]"
     exit 1
   fi
   
@@ -41,7 +47,8 @@ _sync_dir_to_s3() {
   if [ "$notify_after" -eq 0 ]; then
     # If notify-after is 0, suppress stdout by redirecting to /dev/null
     # aws s3 sync "$source_dir" "s3://$bucket_name/" $([[ -n "$profile" ]] && echo "--profile" "$profile") > /dev/null
-    aws s3 sync "$source_dir" "s3://$bucket_name/" \
+    # aws s3 sync "$source_dir" "s3://$bucket_name/" \
+    aws s3 sync "$source_dir" "$save_dir" \
       --profile "$profile" > /dev/null
   else
 
@@ -56,7 +63,8 @@ _sync_dir_to_s3() {
 
     # Use the AWS CLI to sync the source directory with the S3 bucket using the specified profile
     # aws s3 sync "$source_dir" "s3://$bucket_name/" $([[ -n "$profile" ]] && echo "--profile" "$profile") | while read -r line; do
-    aws s3 sync "$source_dir" "s3://$bucket_name/" \
+    # aws s3 sync "$source_dir" "s3://$bucket_name/" \
+    aws s3 sync "$source_dir" "$save_dir" \
       --profile "$profile" | while read -r line; do
       # Increment the file_sync_count
       ((file_sync_count++))
