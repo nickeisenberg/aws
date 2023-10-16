@@ -18,11 +18,9 @@ def copy_dir_to_s3(
     ----------
     source_dir: str
         The full file path to the local dir containing the files that need to be
-        moved to s3.
+        moved.
     save_dir: str
-        Full path of the dir being saved to. In other words, <bucket_name> and not
-        s3://<bucket_name>.
-        
+        Full path of the dir being saved to.
     profile: str
         The name of the profile that is configured with aws configure
     notify_after: str default 0
@@ -32,7 +30,21 @@ def copy_dir_to_s3(
     Returns
     -------
     None
+    
+    Example
+    -------
 
+    source_dir = '/home/nicholas/Datasets/CelebA/img_64_10'
+    save_dir = 's3://celeba-demo-bucket'
+    profile = "nick"
+    notify_after = 2
+
+    pyaws.copy_dir_to_s3(
+        source_dir,
+        save_dir,
+        profile,
+        notify_after
+    )
     """
 
     path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
@@ -106,6 +118,20 @@ def sync_dir_to_s3(
     -------
     None
 
+
+    Example
+    -------
+    source_dir = '/home/nicholas/Datasets/CelebA/img_64_10'
+    save_dir = 's3://celeba-demo-bucket'
+    profile = "nick"
+    notify_after = 2
+
+    pyaws.copy_dir_to_s3(
+        source_dir,
+        save_dir,
+        profile,
+        notify_after
+    )
     """
     
     path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
