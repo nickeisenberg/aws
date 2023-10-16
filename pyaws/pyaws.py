@@ -141,8 +141,3 @@ def sync_dir_to_s3(
         print(f"Bash script not found: {e}")
 
     return None
-
-
-
-
-
