@@ -29,7 +29,7 @@ s3_res = session.resource('s3', region_name="us-east-1")
 # List all buckets and create the new bucket if not exists
 buckets = [bucket['Name'] for bucket in s3_client.list_buckets()['Buckets']]
 
-celeba_bucket = 'celeba-for-tut'
+celeba_bucket = 'celeba-demo-bucket'
 
 if celeba_bucket not in buckets:
     print('Creating the bucket')
@@ -40,11 +40,3 @@ if celeba_bucket not in buckets:
 # add a folder for the images 
 bucket = s3_res.Bucket(celeba_bucket)
 bucket.put_object(Key="imgs/")
-
-# Push the data to the s3 bucket
-rootdir = "/home/nicholas/Datasets/CelebA/img_64_100"
-pyaws.push_folder_to_s3(
-    rootdir=rootdir,
-    bucketdir="s3://celeba-for-tut/imgs",
-    profile="nick"
-)

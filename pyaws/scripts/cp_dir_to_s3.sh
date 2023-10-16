@@ -1,47 +1,47 @@
 #!/bin/bash
 
 # Function to copy files from a local directory to an S3 bucket
-copy_to_s3() {
+_copy_dir_to_s3() {
 
-  local SOURCE_DIR="/home/nicholas/Datasets/CelebA/img_64_10"
-  local S3_BUCKET_NAME="celeba-demo-bucket"
-  local PROFILE="nick"
-  local NOTIFY_AFTER=2
+  # local SOURCE_DIR="/home/nicholas/Datasets/CelebA/img_64_10"
+  # local S3_BUCKET_NAME="celeba-demo-bucket"
+  # local PROFILE="nick"
+  # local NOTIFY_AFTER=2
 
-  # local SOURCE_DIR=""
-  # local S3_BUCKET_NAME=""
-  # local PROFILE=""
-  # local NOTIFY_AFTER=0
+  local SOURCE_DIR=""
+  local S3_BUCKET_NAME=""
+  local PROFILE=""
+  local NOTIFY_AFTER=0
 
-  # while [[ $# -gt 0 ]]; do
-  #   case "$1" in
-  #     --source-dir)
-  #       SOURCE_DIR="$2"
-  #       shift 2
-  #       ;;
-  #     --bucket-name)
-  #       S3_BUCKET_NAME="$2"
-  #       shift 2
-  #       ;;
-  #     --profile)
-  #       PROFILE="$2"
-  #       shift 2
-  #       ;;
-  #     --notify-after)
-  #       NOTIFY_AFTER="$2"
-  #       shift 2
-  #       ;;
-  #     *)
-  #       echo "Usage: $0 --source-dir <source-directory> --bucket-name <bucket-name> [--notify-after <notify-after>]"
-  #       exit 1
-  #       ;;
-  #   esac
-  # done
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --source-dir)
+        SOURCE_DIR="$2"
+        shift 2
+        ;;
+      --bucket-name)
+        S3_BUCKET_NAME="$2"
+        shift 2
+        ;;
+      --profile)
+        PROFILE="$2"
+        shift 2
+        ;;
+      --notify-after)
+        NOTIFY_AFTER="$2"
+        shift 2
+        ;;
+      *)
+        echo "Usage: $0 --source-dir <source-directory> --bucket-name <bucket-name> [--notify-after <notify-after>]"
+        exit 1
+        ;;
+    esac
+  done
 
-  # if [ -z "$SOURCE_DIR" ] || [ -z "$S3_BUCKET_NAME" ]; then
-  #   echo "Both --source-dir and --bucket-name are required."
-  #   exit 1
-  # fi
+  if [ -z "$SOURCE_DIR" ] || [ -z "$S3_BUCKET_NAME" ]; then
+    echo "Both --source-dir and --bucket-name are required."
+    exit 1
+  fi
 
   file_count=0
   running_count=0
@@ -75,4 +75,6 @@ copy_to_s3() {
 }
 
 # Call the function with provided parameters
-copy_to_s3 "$@"
+_copy_dir_to_s3 "$@"
+
+
