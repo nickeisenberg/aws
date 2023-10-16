@@ -2,13 +2,12 @@ import os
 from PIL import Image
 from torchvision import transforms
 import numpy as np
-import matplotlib.pyplot as plt
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 
 def to_parquet(
-    transform,
+    transform: transforms.Compose,
     rootdir,
     savedir,
     notify_afer = 1
@@ -29,15 +28,38 @@ def to_parquet(
 
     img_names = os.listdir(rootdir)
     ch_names = [f"ch{i}" for i in [0, 1, 2]]
-    for i, img_name in enumerate(img_names[: 10]):
+    for i, img_name in enumerate(img_names):
 
         if i % notify_afer == 0:
             print(f"PERCENT COMPLETE: {np.round(100 * i / len(img_names), 2)}")
+
         # PIL image
         img = Image.open(os.path.join(rootdir, img_name))
+    
+        img_t = transform(img)
 
-        # PIL to numpy array (3, 64, 64)
-        img_t = transform(img).numpy()
+        try:
+            # PIL to numpy array
+            img_t = img_t.numpy()
+
+        except:
+            print("The transformed image could not be transformed into a numpy array")
+            return None
+
+            # print("Attempting to add ToTensor to the bottom of transform")
+            # try:
+            #     transform = transform.transforms
+            #     transform.append(transforms.ToTensor())
+            #     transform = transforms.Compose(transform)
+            #     img_t = transform(img)
+            #     img_t = img_t.numpy()
+
+            #     print("Success! Image was could be converted to numpy")
+
+            # except:
+
+            #     print("Unsuccessfull")
+            #     return None
 
         ch_arrs = [arr.reshape(-1) for arr in img_t]
 
@@ -64,26 +86,9 @@ transform = transforms.Compose(
     ]
 )
 
-
 to_parquet(
     transform,
     rootdir,
     savedir,
-    notify_afer=1
+    notify_afer=250
 )
-
-
-# Test the reconstruction
-img_names = os.listdir(rootdir)
-pqnames = os.listdir(savedir)
-
-print(img_names[:10])
-print(pqnames)
-
-img = Image.open(os.path.join(rootdir, img_names[4]))
-img_t = transform(img).numpy()
-table = pq.read_table(os.path.join(savedir, pqnames[0]))
-for i, arr in enumerate(
-    np.array([table[f"ch{i}"].to_numpy().reshape((64, 64)) for i in [0, 1, 2]])
-):
-    print((arr != img_t[i]).sum())

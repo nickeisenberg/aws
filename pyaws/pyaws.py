@@ -47,7 +47,8 @@ def copy_dir_to_s3(
     )
     """
 
-    path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
+    # path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
+    path_to_bash = "./scripts"
     path_to_bash += "/cp_dir_to_s3.sh"
 
     try:
@@ -134,7 +135,8 @@ def sync_dir_to_s3(
     )
     """
     
-    path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
+    # path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
+    path_to_bash = "./scripts"
     path_to_bash += "/sync_dir_to_s3.sh"
 
     try:

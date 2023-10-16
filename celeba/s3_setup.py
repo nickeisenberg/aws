@@ -1,4 +1,6 @@
 """
+This is to be run on the local machine
+
 A script to set up the S3 bucket.
 
 The fastest way to push a whole folder to a s3 bucket is with aws s3 sync.
@@ -8,7 +10,7 @@ pyaws module will contain helpfull bash wrappers to speed thing up
 
 import boto3
 import json
-import wrappers.pyaws as pyaws
+import pyaws
 
 # get the access and secret keys to the aws account
 with open("/home/nicholas/GitRepos/OFFLINE/password.json") as oj:
@@ -39,4 +41,15 @@ if celeba_bucket not in buckets:
 
 # add a folder for the images 
 bucket = s3_res.Bucket(celeba_bucket)
-bucket.put_object(Key="imgs/")
+bucket.put_object(Key="parquets/")
+
+# Move the file to s3
+source_dir = "/home/nicholas/Datasets/CelebA/img_64_parquet_100"
+save_dir = "s3://celeba-demo-bucket/parquets/"
+profile = "nick"
+pyaws.copy_dir_to_s3(
+    source_dir, 
+    save_dir,
+    profile,
+    notify_after=5
+)
