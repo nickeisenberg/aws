@@ -3,13 +3,7 @@
 # Function to copy files from a local directory to an S3 bucket
 _copy_dir_to_s3() {
 
-  # local SOURCE_DIR="/home/nicholas/Datasets/CelebA/img_64_10"
-  # local S3_BUCKET_NAME="celeba-demo-bucket"
-  # local PROFILE="nick"
-  # local NOTIFY_AFTER=2
-
   local SOURCE_DIR=""
-  # local S3_BUCKET_NAME=""
   local SAVE_DIR=""
   local PROFILE=""
   local NOTIFY_AFTER=0
@@ -20,10 +14,6 @@ _copy_dir_to_s3() {
         SOURCE_DIR="$2"
         shift 2
         ;;
-      # --bucket-name)
-      #   S3_BUCKET_NAME="$2"
-      #   shift 2
-      #   ;;
       --save-dir)
         SAVE_DIR="$2"
         shift 2
@@ -37,16 +27,13 @@ _copy_dir_to_s3() {
         shift 2
         ;;
       *)
-        # echo "Usage: $0 --source-dir <source-directory> --bucket-name <bucket-name> [--notify-after <notify-after>]"
         echo "Usage: $0 --source-dir <source-directory> --save-dir <save-directory> [--notify-after <notify-after>]"
         exit 1
         ;;
     esac
   done
 
-  # if [ -z "$SOURCE_DIR" ] || [ -z "$S3_BUCKET_NAME" ]; then
   if [ -z "$SOURCE_DIR" ] || [ -z "$SAVE_DIR" ]; then
-    # echo "Both --source-dir and --bucket-name are required."
     echo "Both --source-dir and --save-dir are required."
     exit 1
   fi
@@ -57,19 +44,16 @@ _copy_dir_to_s3() {
   # Use the `aws s3 cp` command to copy files to the S3 bucket
   if [ "$NOTIFY_AFTER" -eq 0 ]; then
     # Redirect all output to /dev/null to make it silent
-    # aws s3 cp "$SOURCE_DIR" "s3://$S3_BUCKET_NAME" \
     aws s3 cp "$SOURCE_DIR" "$SAVE_DIR" \
       --recursive \
       --profile $PROFILE > /dev/null 2>&1
   else
-    # aws s3 cp "$SOURCE_DIR" "s3://$S3_BUCKET_NAME" \
     aws s3 cp "$SOURCE_DIR" "$SAVE_DIR" \
       --recursive \
       --profile $PROFILE | while IFS= read -r line; do
       ((file_count++))
       ((running_count++))
       if [ "$file_count" -eq "$NOTIFY_AFTER" ]; then
-        # echo "Copied $NOTIFY_AFTER files."
         echo "Copied $running_count files."
         file_count=0
       fi
