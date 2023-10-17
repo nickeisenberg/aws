@@ -2,16 +2,15 @@ import os
 from PIL import Image
 from torchvision import transforms
 import numpy as np
+import matplotlib.pyplot as plt
 import pyarrow as pa
 import pyarrow.parquet as pq
-import matplotlib.pyplot as plt
 
-
-def to_parquet(
+def to_batched_parquet(
     transform: transforms.Compose,
     rootdir,
     savedir,
-    notify_afer = 1
+    im_per_batch=10,
     ):
 
     """
@@ -28,11 +27,10 @@ def to_parquet(
     """
 
     img_names = os.listdir(rootdir)
-    ch_names = [f"ch{i}" for i in [0, 1, 2]]
+    arrs = []
+    batch_num = 0
+    arr_names = []
     for i, img_name in enumerate(img_names):
-
-        if i % notify_afer == 0:
-            print(f"PERCENT COMPLETE: {np.round(100 * i / len(img_names), 2)}")
 
         # PIL image
         img = Image.open(os.path.join(rootdir, img_name))
@@ -47,23 +45,35 @@ def to_parquet(
             print("The transformed image could not be transformed into a numpy array")
             return None
 
-        ch_arrs = [arr.reshape(-1) for arr in img_t]
+        flattened_img = img_t.reshape(-1)
 
-        table = pa.Table.from_arrays(
-            ch_arrs, ch_names
-        )
+        arrs.append(flattened_img)
+        arr_names.append(img_name)
+        
+        if (i + 1) % im_per_batch == 0:
 
-        pq_name = img_name.split('.')[0] + ".pq"
-        pq.write_table(
-            table, 
-            os.path.join(savedir, pq_name)
-        )
+            batch_num += 1
+
+            table = pa.Table.from_arrays(
+                arrs, arr_names
+            )
+
+            pq.write_table(
+                table, 
+                os.path.join(savedir, f"batch{batch_num}")
+            )
+
+            percent_complete = np.round(100 * (batch_num * im_per_batch) / len(img_names), 2)
+            print(f"BATCH {batch_num} PERCENT COMPLETE {percent_complete}")
+
+            arrs = []
+            arr_names = []
 
     return None
 
 
-rootdir = "/home/nicholas/Datasets/CelebA/img_align_celeba"
-savedir = "/home/nicholas/Datasets/CelebA/img64_pq"
+rootdir = "/home/nicholas/Datasets/CelebA/img_align_celeba_10000"
+savedir = "/home/nicholas/Datasets/CelebA/batched"
 transform = transforms.Compose(
     [
         transforms.Resize(64),
@@ -72,26 +82,15 @@ transform = transforms.Compose(
     ]
 )
 
-to_parquet(
-    transform,
-    rootdir,
-    savedir,
-    notify_afer=250
-)
-
-# Test if everything works 
-jpg_names = np.array(os.listdir(rootdir))
-pq_names = np.array(os.listdir(savedir))
+to_batched_parquet(transform, rootdir, savedir, im_per_batch=100)
 
 
-imgname = pq_names[0].split('.')[0] + ".jpg"
+pq_paths = [os.path.join(savedir, name) for name in os.listdir(savedir)]
 
-img = Image.open(os.path.join(rootdir, imgname))
-img_t = transform(img).numpy()
+table = pq.read_table(pq_paths[0])
 
-table = pq.read_table(os.path.join(savedir, pq_names[0]))
-img_recon = np.array(
-    [table[f"ch{i}"].to_numpy().reshape((64, 64)) for i in [0, 1, 2]]
-)
+table.column_names
 
-(img_t != img_recon).sum(
+img = table["000824.jpg"].to_numpy()
+
+img = img.reshape((3, 64, 64))
