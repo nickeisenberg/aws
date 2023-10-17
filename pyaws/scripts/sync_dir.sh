@@ -74,7 +74,7 @@ _sync_dir() {
     fi
   fi
 
-  echo "Sync completed successfully."
+  echo "Sync completed."
 }
 
 _sync_dir "$@"

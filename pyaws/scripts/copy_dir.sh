@@ -62,7 +62,7 @@ _copy_dir() {
 
   # Check the exit status of the `aws s3 cp` command
   if [ $? -eq 0 ]; then
-    echo "All files copied successfully to S3."
+    echo "Copy completed."
   else
     echo "Failed to copy files to S3."
   fi

@@ -1,4 +1,17 @@
 import subprocess
+import os
+
+p = subprocess.run(
+    "pip show pip | awk '/Location/ {print $2}'", 
+    shell=True,
+    capture_output=True,
+    text=True
+)
+
+PATH_TO_PYAWS = os.path.join(
+    p.stdout.strip(),
+    "pyaws"
+)
 
 def copy_dir(
     source_dir, 
@@ -47,8 +60,12 @@ def copy_dir(
     """
 
     # path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
-    path_to_bash = "./scripts"
-    path_to_bash += "/copy_dir.sh"
+    # path_to_bash = "./scripts"
+    # path_to_bash += "/copy_dir.sh"
+    path_to_bash = os.path.join(
+        PATH_TO_PYAWS, 'scripts', 'copy_dir.sh'
+    )
+
 
     try:
         # Call the Bash script with specified parameters
@@ -135,8 +152,11 @@ def sync_dir(
     """
     
     # path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
-    path_to_bash = "./scripts"
-    path_to_bash += "/sync_dir.sh"
+    # path_to_bash = "./scripts"
+    # path_to_bash += "/sync_dir.sh"
+    path_to_bash = os.path.join(
+        PATH_TO_PYAWS, 'scripts', 'sync_dir.sh'
+    )
 
     try:
         # Call the Bash script with specified parameters
