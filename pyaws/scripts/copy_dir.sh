@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Function to copy files from a local directory to an S3 bucket
-_copy_dir_to_s3() {
+_copy_dir() {
 
   local SOURCE_DIR=""
   local SAVE_DIR=""
@@ -69,6 +69,6 @@ _copy_dir_to_s3() {
 }
 
 # Call the function with provided parameters
-_copy_dir_to_s3 "$@"
+_copy_dir "$@"
 
 

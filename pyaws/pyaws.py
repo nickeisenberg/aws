@@ -1,7 +1,6 @@
 import subprocess
 
-
-def copy_dir_to_s3(
+def copy_dir(
     source_dir, 
     save_dir,
     profile,
@@ -49,7 +48,7 @@ def copy_dir_to_s3(
 
     # path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
     path_to_bash = "./scripts"
-    path_to_bash += "/cp_dir_to_s3.sh"
+    path_to_bash += "/copy_dir.sh"
 
     try:
         # Call the Bash script with specified parameters
@@ -81,7 +80,7 @@ def copy_dir_to_s3(
     return None
 
 
-def sync_dir_to_s3(
+def sync_dir(
     source_dir, 
     # bucket_name,
     save_dir,
@@ -137,7 +136,7 @@ def sync_dir_to_s3(
     
     # path_to_bash = "/home/nicholas/GitRepos/aws/pyaws/scripts"
     path_to_bash = "./scripts"
-    path_to_bash += "/sync_dir_to_s3.sh"
+    path_to_bash += "/sync_dir.sh"
 
     try:
         # Call the Bash script with specified parameters

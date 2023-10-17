@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define a function to sync files to an S3 bucket
-_sync_dir_to_s3() {
+_sync_dir() {
   local source_dir=""
   local save_dir=""
   local notify_after=0
@@ -77,4 +77,4 @@ _sync_dir_to_s3() {
   echo "Sync completed successfully."
 }
 
-_sync_dir_to_s3 "$@"
+_sync_dir "$@"

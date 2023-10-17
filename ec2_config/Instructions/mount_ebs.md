@@ -9,3 +9,6 @@ example `sudo mkdir /data`
 `sudo mount /dev/<name_of_volume> /data`
 
 5. Running `df -H` should now show the added volume.
+
+6. Run `sudo chown <your username>:<your usergroup> -R <path to volume>` to remove
+the sudo need for it. This way you can move files to the volume using the aws cli

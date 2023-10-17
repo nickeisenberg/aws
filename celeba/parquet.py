@@ -4,6 +4,7 @@ from torchvision import transforms
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+import matplotlib.pyplot as plt
 
 
 def to_parquet(
@@ -77,7 +78,7 @@ def to_parquet(
 
 
 rootdir = "/home/nicholas/Datasets/CelebA/img_align_celeba"
-savedir = "/home/nicholas/Datasets/CelebA/img_64_parquet"
+savedir = "/home/nicholas/Datasets/CelebA/img64_pq"
 transform = transforms.Compose(
     [
         transforms.Resize(64),
@@ -92,3 +93,20 @@ to_parquet(
     savedir,
     notify_afer=250
 )
+
+# Test if everything works 
+jpg_names = np.array(os.listdir(rootdir))
+pq_names = np.array(os.listdir(savedir))
+
+
+imgname = pq_names[0].split('.')[0] + ".jpg"
+
+img = Image.open(os.path.join(rootdir, imgname))
+img_t = transform(img).numpy()
+
+table = pq.read_table(os.path.join(savedir, pq_names[0]))
+img_recon = np.array(
+    [table[f"ch{i}"].to_numpy().reshape((64, 64)) for i in [0, 1, 2]]
+)
+
+(img_t != img_recon).sum(
