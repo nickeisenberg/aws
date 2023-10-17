@@ -11,6 +11,7 @@ def to_batched_parquet(
     rootdir,
     savedir,
     im_per_batch=10,
+    compression="snappy"
     ):
 
     """
@@ -57,10 +58,11 @@ def to_batched_parquet(
             table = pa.Table.from_arrays(
                 arrs, arr_names
             )
-
+            
             pq.write_table(
                 table, 
-                os.path.join(savedir, f"batch{batch_num}")
+                os.path.join(savedir, f"batch{batch_num}"),
+                compression=compression
             )
 
             percent_complete = np.round(100 * (batch_num * im_per_batch) / len(img_names), 2)
@@ -72,7 +74,7 @@ def to_batched_parquet(
     return None
 
 
-rootdir = "/home/nicholas/Datasets/CelebA/img_align_celeba_10000"
+rootdir = "/home/nicholas/Datasets/CelebA/img_align_celeba_1000"
 savedir = "/home/nicholas/Datasets/CelebA/batched"
 transform = transforms.Compose(
     [
@@ -82,7 +84,9 @@ transform = transforms.Compose(
     ]
 )
 
-to_batched_parquet(transform, rootdir, savedir, im_per_batch=100)
+to_batched_parquet(
+    transform, rootdir, savedir, im_per_batch=100, compression="gzip"
+)
 
 
 pq_paths = [os.path.join(savedir, name) for name in os.listdir(savedir)]
