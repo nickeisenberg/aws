@@ -2,16 +2,15 @@ import os
 from PIL import Image
 from torchvision import transforms
 import numpy as np
-import matplotlib.pyplot as plt
-import pyarrow as pa
-import pyarrow.parquet as pq
+import gzip
+import blosc
+import pickle
 
-def to_batched_parquet(
+def to_batched_npy(
     transform: transforms.Compose,
     rootdir,
     savedir,
-    im_per_batch=10,
-    compression="snappy"
+    im_per_batch=10
     ):
 
     """
@@ -55,15 +54,26 @@ def to_batched_parquet(
 
             batch_num += 1
 
-            table = pa.Table.from_arrays(
-                arrs, arr_names
-            )
+            pickled_arrs = pickle.dumps(np.array(arrs))
+            compressed_pickle = blosc.compress(pickled_arrs)
+           
+            with open(os.path.join(savedir, f"batch{batch_num}.dat"), "wb") as f:
+                f.write(compressed_pickle)
+
+            # zipped_imgs = gzip.GzipFile(
+            #     os.path.join(savedir, f"batch{batch_num}.npy.gz"), 
+            #     "w"
+            # )
+            # np.save(file=zipped_imgs, arr=arrs)
+            # zipped_imgs.close()
             
-            pq.write_table(
-                table, 
-                os.path.join(savedir, f"batch{batch_num}"),
-                compression=compression
-            )
+            # arr_names = np.array(arr_names)
+            # zipped_names = gzip.GzipFile(
+            #     os.path.join(savedir, f"batch{batch_num}_names.npy.gz"), 
+            #     "w"
+            # )
+            # np.save(file=zipped_names, arr=arrs)
+            # zipped_names.close()
 
             percent_complete = np.round(100 * (batch_num * im_per_batch) / len(img_names), 2)
             print(f"BATCH {batch_num} PERCENT COMPLETE {percent_complete}")
@@ -75,7 +85,7 @@ def to_batched_parquet(
 
 
 rootdir = "/home/nicholas/Datasets/CelebA/img_align_celeba_10000"
-savedir = "/home/nicholas/Datasets/CelebA/batched"
+savedir = "/home/nicholas/Datasets/CelebA/numpy"
 transform = transforms.Compose(
     [
         transforms.Resize(64),
@@ -84,17 +94,26 @@ transform = transforms.Compose(
     ]
 )
 
-to_batched_parquet(
-    transform, rootdir, savedir, im_per_batch=1000, compression="gzip"
+img_names = os.listdir(rootdir)
+filenames = [os.path.join(rootdir, f) for f in img_names]
+
+totalsize = sum([os.stat(f).st_size for f in filenames])
+print(totalsize / 1e6)
+
+to_batched_npy(transform, rootdir, savedir, 100)
+
+
+c_names = os.listdir(savedir)
+filenames = [os.path.join(savedir, f) for f in c_names]
+
+totalsize = sum([os.stat(f).st_size for f in filenames])
+print(totalsize / 1e6)
+
+
+zipped_imgs = gzip.GzipFile(
+   os.path.join(savedir, f"batch100.npy.gz"), 
+   "r"
 )
+imgs = np.load(zipped_imgs)
+zipped_imgs.close()
 
-
-pq_paths = [os.path.join(savedir, name) for name in os.listdir(savedir)]
-
-table = pq.read_table(pq_paths[0])
-
-table.column_names
-
-img = table["000824.jpg"].to_numpy()
-
-img = img.reshape((3, 64, 64))
