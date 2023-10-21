@@ -9,10 +9,7 @@
     - 1.4. Making a security group that allows for sufficient inbound and outbount privileges. This 
     includes SSH, HTTP, HTTPS and IMCP.
 
-2. Use `spot_config.py` to create the EC2 spot instance. The config for this spot instance
-can be eaisly generated using the aws consol. For example, go to the EC2 tab in the consol
-and on the left navigation pane, choose `Spot Requests`. There is a `configure json` option right
-by the launch request button.
+2. Create the ec2 instance
 
 3. Get the public IP address for the 
 
