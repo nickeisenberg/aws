@@ -2,7 +2,6 @@ import os
 import shutil
 
 
-
 def to_batched_zips(sourcedir, savedir, ims_per_batch):
 
     filenames = [os.path.join(sourcedir, f) for f in os.listdir(sourcedir)]
@@ -31,11 +30,11 @@ def to_batched_zips(sourcedir, savedir, ims_per_batch):
     return None
 
 
+sourcedir = "/home/nicholas/Datasets/CelebA/img_align_celeba_1000"
 savedir = "/home/nicholas/Datasets/CelebA/batched"
-sourcedir = "/home/nicholas/Datasets/CelebA/img_align_celeba_10000"
 
 to_batched_zips(
     sourcedir=sourcedir,
     savedir=savedir,
-    ims_per_batch=1000
+    ims_per_batch=100
 )
