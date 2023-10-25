@@ -15,6 +15,11 @@ is a proftected file.
             --profile <profile_name>
     ```
 
+aws ec2 reboot-instances \
+        --region us-west-1 \
+        --instance-ids i-05cbf3049d9af51e4 \
+        --profile nick
+
 3. Now, ssh back in the instance but make sure you add the `-X` tag into your
 ssh command. For example, `ssh -X -i <key-pair.pem> ubuntu@<ip-addr>`
 
