@@ -1,6 +1,6 @@
 1. Run `lsblk` to find the name of the volume that was added from the aws consol.
 
-2. Format the volume with `sudo mkfs -t ext4 /dev/xvdf`
+3. Format the volume with `sudo mkfs -t ext4 /dev/xvdf`
 
 3. Create the folder inside `dev` that will be used to mount the volume. For 
 example `sudo mkdir /data`
