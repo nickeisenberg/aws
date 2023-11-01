@@ -1,3 +1,8 @@
+"""
+Use this script for some initial setup of the ec2 instnace.
+Use pyaws.transfer.scp to move the files over
+"""
+
 from pyaws.transfer import scp
 
 save_path = "/home/ubuntu/Dotfiles/scripts"
