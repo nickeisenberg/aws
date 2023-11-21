@@ -30,5 +30,12 @@ If this works then all is well.
     -4.3 Remove all prvileges that were added to this user in `/etc/sudoers` by using 
     `visudo`
 
+5. * To create new users to a differenc filsystem
+    - `sudo useradd -m -d /<new_filesystem>/<username> -s /bin/bash <username>`
+    - `sudo passwd <username>`
+   * Then add the user to the sudoers with `sudo visudo` and 
+     add `<username> ALL=(ALL:ALL) ALL`
+   * Add the authorized_key from /home/ubuntu/.ssh/authorized_keys into the new users
+     home directory so that you cann ssh directly into this account.
 
- 
+
