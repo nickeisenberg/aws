@@ -63,8 +63,29 @@ be patient.
 want to continue. After continuing, say that you accept.
 
 17. NEXT MAKE SURE THAT YOU UNSELECT THE DRIVER!!!!!! You can use the arrow keys to move around
-and use the enter key to select or de-delect. ONLY AFTER DE-SELECTING THE DRIVER, use the arrows
-to move the install icon and hit enter. The install hangs again, so be patient.
+    and use the enter key to select or de-delect. ONLY AFTER DE-SELECTING THE DRIVER, use the arrows
+    to move the install icon and hit enter. The install hangs again, so be patient. The output of a
+    successful install is the following
+    ```
+    ===========
+    = Summary =
+    ===========
+    
+    Driver:   Not Selected
+    Toolkit:  Installed in /usr/local/cuda-11.8/
+    
+    Please make sure that
+     -   PATH includes /usr/local/cuda-11.8/bin
+     -   LD_LIBRARY_PATH includes /usr/local/cuda-11.8/lib64, or, add /usr/local/cuda-11.8/lib64 to /etc/ld.so.conf and run ldconfig as root
+    
+    To uninstall the CUDA Toolkit, run cuda-uninstaller in /usr/local/cuda-11.8/bin
+    ***WARNING: Incomplete installation! This installation did not install the CUDA Driver. A driver of version at least 520.00 is required for CUDA 11.8 functionality to work.
+    To install the driver using this installer, run the following command, replacing <CudaInstaller> with the name of this run file:
+        sudo <CudaInstaller>.run --silent --driver
+    
+    Logfile is /var/log/cuda-installer.log
+    ```
+
 
 18. Edit the `~/.bashrc` (or `~/.bash_profile` if you use that) and add the follwing lines
     anywhere in these files:
